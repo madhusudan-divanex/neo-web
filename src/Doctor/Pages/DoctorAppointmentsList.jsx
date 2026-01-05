@@ -245,6 +245,8 @@ function DoctorAppointmentsList() {
                                                                                     <span className="danger-title">Rejected appointment</span>
                                                                                 }
                                                                                 {item?.status == 'completed' && <span className="complete-data">Completed </span>}
+                                                                                {(item?.status !== 'completed' && item?.status !== "rejected" && item?.status !== "cancel" && item?.status !== "pending") 
+                                                                                && <span className="complete-data text-capitalize">{item?.status} </span>}
                                                                             </td>
                                                                             {/* <td>
                                                                         <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>

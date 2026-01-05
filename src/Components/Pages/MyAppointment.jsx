@@ -181,8 +181,8 @@ function MyAppointment() {
                                                                                         {item?.status == 'approved' && <div className="not-accpent-bx">
                                                                                             <h6 className="not-accept-title accept-title">Accept Request</h6>
                                                                                         </div>}
-                                                                                        {item?.status!=='rejected' && item?.status!=='approved' && 
-                                                                                        <div></div>}
+                                                                                        {item?.status !== 'rejected' && item?.status !== 'approved' &&
+                                                                                            <div></div>}
 
                                                                                         <div>
                                                                                             <ul className="doctor-social-list">
@@ -196,10 +196,13 @@ function MyAppointment() {
                                                                                     </div>
 
                                                                                 </div>
-
+                                                                                {item?.status == 'cancel' &&
+                                                                                    <div className="mt-2">
+                                                                                        <p className="appoint-cancel">Cancel Date :{formatDateTime(item?.updatedAt)}</p>
+                                                                                    </div>}
                                                                             </div>) : 'No doctor Appointment'}
 
-                                                                    
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -220,9 +223,10 @@ function MyAppointment() {
                                                                                         <div className="appoint-right-title-bx">
                                                                                             <span className="nw-result-bx">Upcoming</span>
                                                                                         </div>}
-                                                                                    {item?.status == 'cancel' && <div className="appoint-right-title-bx">
-                                                                                        <span className="nw-result-bx canceled-title">Canceled</span>
-                                                                                    </div>}
+                                                                                    {item?.status == 'cancel' &&
+                                                                                        <div className="appoint-right-title-bx">
+                                                                                            <span className="nw-result-bx canceled-title">Canceled</span>
+                                                                                        </div>}
                                                                                     {item?.status == 'pending-report' &&
                                                                                         <div className="appoint-right-title-bx">
                                                                                             <span className="nw-result-bx pending-bx">Pending Report</span>
@@ -252,8 +256,8 @@ function MyAppointment() {
                                                                                         {item?.status == 'approved' && <div className="not-accpent-bx">
                                                                                             <h6 className="not-accept-title accept-title">Accept Request</h6>
                                                                                         </div>}
-                                                                                        {item?.status!=='rejected' && item?.status!=='approved' && 
-                                                                                        <div></div>}
+                                                                                        {item?.status !== 'rejected' && item?.status !== 'approved' &&
+                                                                                            <div></div>}
 
                                                                                         <div>
                                                                                             <ul className="doctor-social-list">

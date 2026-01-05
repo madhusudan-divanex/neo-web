@@ -64,12 +64,12 @@ function AppointmentDetailsCompleted() {
             if (result.success) {
                 fetchAppointmentData()
                 toast.success("Appointment cancel")
-                // const modalEl = document.getElementById("prescription-Modal");
-                // const modalInstance = Modal.getInstance(modalEl);
+                const modalEl = document.getElementById("prescription-Modal");
+                const modalInstance = Modal.getInstance(modalEl);
 
-                // if (modalInstance) {
-                //     modalInstance.hide();
-                // }
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
 
             }
         } catch (error) {
@@ -180,13 +180,13 @@ function AppointmentDetailsCompleted() {
                                                             <div className="appoint-right-title-bx">
                                                                 <span className="nw-result-bx completed-title">Completed</span>
                                                             </div>}
-                                                            {appointmentData?.status == 'rejected' && <div className="not-accpent-bx">
+                                                        {appointmentData?.status == 'rejected' && <div className="not-accpent-bx">
                                                             <h6 className="not-accept-title">Not Accept</h6>
                                                         </div>}
                                                         {appointmentData?.status == 'approved' && <div className="not-accpent-bx">
                                                             <h6 className="not-accept-title accept-title">Accept Request</h6>
-                                                        </div>}                                                       
-                                                        
+                                                        </div>}
+
                                                     </div>
                                                 </div>
 
@@ -229,10 +229,8 @@ function AppointmentDetailsCompleted() {
                                                         <li className="booking-item">Payment<span className="booking-title paid-title text-capitalize">{appointmentData?.paymentStatus}</span></li>
                                                     </ul>
                                                 </div>
-
                                             </div>
                                         </div>
-
                                         <div className="col-lg-6 mb-3">
                                             <div className="appointment-booking-detail-bx">
                                                 <div className="booking-details-tp-title">
@@ -243,7 +241,6 @@ function AppointmentDetailsCompleted() {
                                                         <li className="booking-item">Name<span className="booking-title">{profiles?.name}</span></li>
                                                         <li className="booking-item">Email<span className="booking-title">{profiles?.email}</span></li>
                                                         <li className="booking-item">Mobile Number<span className="booking-title">{profiles?.contactNumber}</span></li>
-
                                                     </ul>
                                                 </div>
 
@@ -314,6 +311,31 @@ function AppointmentDetailsCompleted() {
                                                 </div>
 
                                             </div>
+                                        </div>}
+                                        {appointmentData?.status == 'cancel' && <div className="col-lg-12">
+                                            <div className="lab-report-tp-bx">
+                                                <div className="booking-details-tp-title">
+                                                    <h5 >Reason of cancellation</h5>
+                                                </div>
+                                                <div className="appointment-listing-bx pb-5">
+                                                    <h6 className="appoint-cancel fw-700">Cancel Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
+                                                    <p>{appointmentData?.cancelMessage}</p>
+                                                </div>
+
+                                            </div>
+                                        </div>}
+                                        {appointmentData?.status == 'rejected' && <div className="col-lg-12">
+                                            <div className="lab-report-tp-bx">
+                                                <div className="appointment-listing-bx pb-5">
+                                                    <h6 className="appoint-cancel fw-700">Reject Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
+
+                                                </div>
+
+                                            </div>
+                                        </div>}
+                                        {appointmentData?.status == 'pending' && <div className="text-end">
+                                            <button className="nw-danger-outline-btn me-3" data-bs-toggle="modal" data-bs-target="#prescription-Modal">Cancel</button>
+                                            <button className="nw-thm-btn">Reschedule</button>
                                         </div>}
 
                                         {appointmentData?.status == 'completed' &&

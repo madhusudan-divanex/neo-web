@@ -277,8 +277,8 @@ function LabTestDetailsUpcoming() {
                                                         <h5 >Reason of cancellation</h5>
                                                     </div>
                                                     <div className="appointment-listing-bx pb-5">
-                                                        <h6 className="appoint-cancel fw-700">Cancel Date :30 June 2025,  10:00pm</h6>
-                                                        <p>Lorem ipsum is a dummy or placeholder text commonly used in graphic design, publishing, and web development.</p>
+                                                         <h6 className="appoint-cancel fw-700">Cancel Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
+                                                    <p>{appointmentData?.cancelMessage}</p>
                                                     </div>
 
                                                 </div>
