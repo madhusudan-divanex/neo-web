@@ -9,15 +9,15 @@ const ProtectedRoute = () => {
   useEffect(() => {
     const validateToken = async () => {
       const token = localStorage.getItem("token");
-      const patientId = localStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
 
-      if (!token || !patientId) {
+      if (!token || !userId) {
         setIsAuthenticated(false);
         return;
       }
 
       try {
-        const res = await getSecureApiData(`patient/${patientId}`);
+        const res =await getSecureApiData(`user/${userId}`) 
         if (res?.success) {
           setIsAuthenticated(true);
         } else {
@@ -25,7 +25,7 @@ const ProtectedRoute = () => {
         }
       } catch (error) {
         localStorage.removeItem("token");
-        localStorage.removeItem("patientId");
+        localStorage.removeItem("userId");
         toast.error("Session expired. Please log in again.");
         setIsAuthenticated(false);
       }
@@ -34,8 +34,9 @@ const ProtectedRoute = () => {
     validateToken();
   }, []);
 
+  // ⏳ While checking auth
   if (isAuthenticated === null) {
-    return ;
+    return null; // or a loader/spinner
   }
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;

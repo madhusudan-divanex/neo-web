@@ -8,40 +8,40 @@ import { Link } from "react-router-dom"
 function FindLabs() {
     const [favIds, setFavIds] = useState([])
     const [labs, setLabs] = useState([])
-    const userId=localStorage.getItem('userId')
+    const userId = localStorage.getItem('userId')
     async function fetchLabs() {
-        const result = await getApiData(`lab`)       
+        const result = await getApiData(`lab`)
         if (result.success) {
-            setLabs(result.data)          
+            setLabs(result.data)
         }
     }
-    useEffect(()=>{
+    useEffect(() => {
         fetchLabs()
-    },[])
-     async function fetchFavData() {
-            const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
-            if (result.success) {
-                setFavIds(result.data)
-            }
+    }, [])
+    async function fetchFavData() {
+        const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
+        if (result.success) {
+            setFavIds(result.data)
         }
-    
-        useEffect(() => {
-            fetchFavData()
-        }, [userId])
-        const handleFavorite = async (id) => {
-            const data = { userId, labId: id }
-            try {
-                const response = await securePostData('patient/favorite', data)
-                if (response.success) {
-                    // toast.success("")
-                    fetchFavData()
-                } else {
-                    toast.success(response.message)
-                }
-            } catch (error) {
-    
+    }
+
+    useEffect(() => {
+        fetchFavData()
+    }, [userId])
+    const handleFavorite = async (id) => {
+        const data = { userId, labId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
             }
+        } catch (error) {
+
         }
+    }
     return (
         <>
             <section className="tp-breadcrum-section">
@@ -327,42 +327,42 @@ function FindLabs() {
                             </div>
 
                             <div className="row">
-                                {labs?.length>0?
-                                labs?.map((item,key)=>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3" key={key}>
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src={item?.labId?.logo? 
-                                                    `${base_url}/${item?.labId?.logo}`:"/lab-pic.png"} alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">{item?.labId?.name}</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> {item?.labAddress?.fullAddress}</p>
-                                                <div className="my-3">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                {labs?.length > 0 ?
+                                    labs?.map((item, key) =>
+                                        <div className="col-lg-6 col-md-12 col-sm-12 mb-3" key={key}>
+                                            <div className="lab-technology-card">
+                                                <div className="doctor-mega-card">
+                                                    <div className="doctor-pic-bx">
+                                                        <img src={item?.labId?.logo ?
+                                                            `${base_url}/${item?.labId?.logo}` : "/lab-pic.png"} alt="" />
+                                                    </div>
+                                                    <div className="doctor-details  flex-grow-1">
+                                                        <h4 className="innr-title fz-700">{item?.labId?.name}</h4>
+                                                        <p><FontAwesomeIcon icon={faLocationDot} /> {item?.labAddress?.fullAddress}</p>
+                                                        <div className="my-3">
+                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> {item?.avgRating.toFixed(0)} </span>
+                                                        </div>
+
+                                                        <div className="  d-flex align-items-center justify-content-between">
+                                                            <div>
+                                                                <Link to={`/lab-detail/${item?.labId?.name}/${item?._id}`} className="nw-thm-btn">View Details</Link>
+                                                            </div>
+                                                            <div>
+                                                                <button className="heart-btn" onClick={() => handleFavorite(item?._id)}>
+                                                                    {favIds?.some(fav => fav?.labId === item?._id) ?
+                                                                        <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                                                                        : <i className="fa-regular fa-heart"></i>}</button>
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
                                                 </div>
 
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <Link to={`/lab-detail/${item?.labId?.name}/${item?._id}`} className="nw-thm-btn">View Details</Link>
-                                                    </div>
-                                                    <div>
-                                                       <button className="heart-btn" onClick={()=>handleFavorite(item?._id)}>
-                                                        {favIds?.some(fav => fav?.labId === item?._id) ?
-                                                            <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
-                                                            : <i className="fa-regular fa-heart"></i>}</button>
-                                                    </div>
-
-                                                </div>
-
                                             </div>
-                                        </div>
+                                        </div>) : 'No Lab found'}
 
-                                    </div>
-                                </div>):'No Lab found'}
 
-                                
                             </div>
 
 

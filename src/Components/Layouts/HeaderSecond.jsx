@@ -6,9 +6,11 @@ import { Link, NavLink } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import base_url from "../../baseUrl";
 import { fetchPatientDetail } from "../../Redux/features/patient";
+import { getSecureApiData } from "../../Services/api";
 
 function HeaderSecond() {
     const [menuOpen, setMenuOpen] = useState(false);
+    const userId = localStorage.getItem('userId')
     const [selectedLocation, setSelectedLocation] = useState("Jaipur, India");
 
     const locations = ["Jaipur, India", "Delhi, India", "Mumbai, India"];
@@ -23,12 +25,37 @@ function HeaderSecond() {
 
     const [open, setOpen] = useState(false);
 
-    const dispatch=useDispatch()
-    const { profiles, medicalHistory, demographic, labAppointment, kyc, prescription, isRequest,customId,role } = useSelector(state => state.patient)
-    useEffect(()=>{
+    const dispatch = useDispatch()
+    const [userData, setUserData] = useState()
+    const [role, setRole] = useState()
+    
+    useEffect(() => {
         dispatch(fetchPatientDetail())
-    },[dispatch])
-
+    }, [dispatch])
+    useEffect(() => {
+        if (userId) {
+            
+            getUserData()
+        }
+    }, [userId])
+    
+    async function getUserData() {
+        try {
+            const res = await getSecureApiData(`user/${userId}`)    
+            if (res?.success) {
+                setUserData(res.data)
+                setRole(res.data.role);
+            }
+        } catch (error) {
+        }
+    }
+    
+    const profiles = useSelector(state => {
+        if (role === 'patient') return state.patient.profiles;
+        if (role === 'doctor') return state.doctor.profiles;
+        return null;
+    });
+    console.log(profiles)
     return (
         <>
             <nav className="navbar navbar-expand-lg navbar-light-box">
@@ -60,15 +87,15 @@ function HeaderSecond() {
                             </li>
 
                             <li className="nav-item">
-                                <a className="nav-link" href="#" onClick={closeMenu}>
+                                <Link className="nav-link" to='/new-doctor-details' onClick={closeMenu}>
                                     Doctors
-                                </a>
+                                </Link>
                             </li>
 
                             <li className="nav-item">
-                                <a className="nav-link" href="#" onClick={closeMenu}>
+                                <Link className="nav-link" to={'/find-hospital'} onClick={closeMenu}>
                                     Hospitals
-                                </a>
+                                </Link>
                             </li>
 
                             <li className="nav-item">
@@ -195,8 +222,8 @@ function HeaderSecond() {
                                     onClick={() => setOpen(!open)}
                                 >
                                     <div className="admn-icon me-2">
-                                        <img src={profiles?.profileImage?
-                                            `${base_url}/${profiles?.profileImage}`:"/call-pic.jpg"} alt="" />
+                                        <img src={profiles?.profileImage ?
+                                            `${base_url}/${profiles?.profileImage}` : "/call-pic.jpg"} alt="" />
                                     </div>
 
                                     <div className="profile-info me-1">
@@ -217,8 +244,8 @@ function HeaderSecond() {
                                 >
                                     <div className="profile-card-box">
                                         <div className="profile-top-section">
-                                            <img src={profiles?.profileImage?
-                                            `${base_url}/${profiles?.profileImage}`:"/call-pic.jpg"} alt="Profile" className="profile-image" />
+                                            <img src={profiles?.profileImage ?
+                                                `${base_url}/${profiles?.profileImage}` : "/call-pic.jpg"} alt="Profile" className="profile-image" />
                                             <div className="profile-info">
                                                 <h4 className="profile-name">{profiles?.name}</h4>
                                                 <p className="profile-id text-capitalize">{role}</p>
@@ -227,20 +254,18 @@ function HeaderSecond() {
 
                                         <ul className="head-list">
                                             <li className="head-item">
-                                                <a href="javascript:void(0)" className="head-nav-link">
+                                                <Link to={role == "patient" ? '/my-appointment' : "/doctor/request-list"} className="head-nav-link">
                                                     <FontAwesomeIcon icon={faBorderAll} /> Dashboard
-                                                </a>
+                                                </Link>
                                             </li>
-
                                             <li className="head-item">
-                                                <Link to='/my-appointment' className="head-nav-link">
+                                                <Link to={role == 'patient' ? '/my-appointment' : '/doctor/appointment-list'} className="head-nav-link">
                                                     <FontAwesomeIcon icon={faKitMedical} /> My Appointment
                                                 </Link>
                                             </li>
-
                                             <li className="head-item">
-                                                <Link to='/' onClick={()=>{
-                                                    localStorage.clear() 
+                                                <Link to='/' onClick={() => {
+                                                    localStorage.clear()
                                                     sessionStorage.clear()
                                                 }} className="head-nav-link">
                                                     <FontAwesomeIcon icon={faArrowRightToBracket} /> Logout

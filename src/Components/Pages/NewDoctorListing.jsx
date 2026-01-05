@@ -1,7 +1,49 @@
 import { faHome, faLocationDot, faRoute, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { toast } from "react-toastify"
+import { getApiData, getSecureApiData, securePostData } from "../../Services/api"
+import { useEffect, useState } from "react"
+import base_url from "../../baseUrl"
+import { Link } from "react-router-dom"
 
 function NewDoctorListing() {
+  const [favIds, setFavIds] = useState([])
+  const [doctors, setDoctors] = useState([])
+  const userId = localStorage.getItem('userId')
+  const [sideFilter, setSideFilter] = useState({ availability: "", rating: [""], pricing: [""], specialty: [""], language: [""] })
+  async function fetchDoctors() {
+    const result = await getApiData(`doctor/all-doctors`)
+    if (result.success) {
+      setDoctors(result.data)
+    }
+  }
+  useEffect(() => {
+    fetchDoctors()
+  }, [])
+  async function fetchFavData() {
+    const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000&type=doctor`)
+    if (result.success) {
+      setFavIds(result.data)
+    }
+  }
+
+  useEffect(() => {
+    fetchFavData()
+  }, [userId])
+  const handleFavorite = async (id) => {
+    const data = { userId, doctorId: id }
+    try {
+      const response = await securePostData('patient/favorite', data)
+      if (response.success) {
+        // toast.success("")
+        fetchFavData()
+      } else {
+        toast.success(response.message)
+      }
+    } catch (error) {
+
+    }
+  }
   return (
 
     <>
@@ -399,7 +441,45 @@ function NewDoctorListing() {
               </div>
 
               <div className="row">
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
+                {doctors?.length > 0 &&
+                  doctors?.map((item, key) =>
+                    <div className="col-lg-4 col-md-6 col-sm-12 mb-3" key={key}>
+                      <div className="favorite-docotr-card position-relative">
+                        <div className="favorite-doctor-picture text-center">
+                          <img src={item?.doctorId?.profileImage ?
+                            `${base_url}/${item?.doctorId?.profileImage}` : "/date-time-img.png"} alt="" />
+                          <div className="favorite-doctor-details">
+                            <h4 className="text-capitalize">Dr.{item?.name}</h4>
+                            <div className="my-2">
+                              <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating?.toFixed(0)} </span>
+                            </div>
+                            <h6 className="nw-hospital-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName}</h6>
+                            <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
+                              <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
+                              <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAddress?.cityId?.name + ', ' + item?.doctorAddress?.stateId?.name}</p>
+                            </div>
+                            <div className="d-flex justify-content-between mt-3">
+
+                              <div className="text-start">
+                                <span className="fees-title">Fees :</span>
+                                <h5 className="ammount-title fw-700"> $ {item?.doctorAddress?.fees}.00</h5>
+                              </div>
+                              <Link to={`/doctor-details/${item?.doctorId?.name}/${item?._id}`} className="nw-thm-btn">Book Appointment</Link>
+                            </div>
+
+                            <div className="doctor-heart-bx">
+                              <button className="heart-btn" onClick={() => handleFavorite(item?._id)}>
+                                {favIds?.some(fav => fav?.doctorId === item?._id) ?
+                                  <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                                  : <i className="fa-regular fa-heart"></i>}</button>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>)}
+
+                {/* <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
                   <div className="favorite-docotr-card position-relative">
                     <div className="favorite-doctor-picture text-center">
                       <img src="/date-time-img.png" alt="" />
@@ -409,12 +489,12 @@ function NewDoctorListing() {
                           <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
                         </div>
                         <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
+                        <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
+                          <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
+                          <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                        </div>
                         <div className="d-flex justify-content-between mt-3">
-                    
+
                           <div className="text-start">
                             <span className="fees-title">Fees :</span>
                             <h5 className="ammount-title fw-700"> $ 22.00</h5>
@@ -423,278 +503,14 @@ function NewDoctorListing() {
                         </div>
 
                         <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
+                          <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                         </div>
 
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                  <div className="favorite-docotr-card position-relative">
-                    <div className="favorite-doctor-picture text-center">
-                      <img src="/date-time-img.png" alt="" />
-                      <div className="favorite-doctor-details">
-                        <h4 className="">Dr.James Harris</h4>
-                        <div className="my-2">
-                          <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                        </div>
-                        <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                       <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                         <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                       </div>
-                        <div className="d-flex justify-content-between mt-3">
-                    
-                          <div className="text-start">
-                            <span className="fees-title">Fees :</span>
-                            <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                          </div>
-                          <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                        </div>
-
-                        <div className="doctor-heart-bx">
-                            <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-               
-
+                </div> */}
               </div>
-
-
-
-
-
             </div>
 
           </div>

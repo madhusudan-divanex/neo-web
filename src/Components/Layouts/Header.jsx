@@ -260,7 +260,7 @@ const Header = () => {
               </div>
 
               <div className="d-flex align-items-center gap-2 flex-wrap">
-                <Link to='/login' className="nw-thm-btn outline" onClick={closeMenu}>
+                <Link to='/select-account-type' className="nw-thm-btn outline" onClick={closeMenu}>
                   <FaUser className="me-1" /> Login
                 </Link>
 

@@ -44,7 +44,7 @@ function SelectAccountType() {
                                             </div>
                                         </div>
                                         <div>
-                                            <button className="go-nw-doctr-btn"><FontAwesomeIcon icon={faArrowRight} /></button>
+                                            <Link to='/doctor/login' className="go-nw-doctr-btn"><FontAwesomeIcon icon={faArrowRight} /></Link>
                                         </div>
                                     </div>
                                 </div>

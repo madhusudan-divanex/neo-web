@@ -11,12 +11,16 @@ import { Link, useNavigate } from "react-router-dom"
 import { formatDateTime } from "../../Services/globalFunction"
 
 function MyAppointment() {
-    const navigate=useNavigate()
+    const navigate = useNavigate()
     const userId = localStorage.getItem('userId')
     const [cLabPage, setCLabPage] = useState(1)
     const [tLabPage, setTLabPage] = useState(1)
     const [totalLabAppointment, setTotalLabAppointment] = useState(0)
+    const [doctorPage, setDoctorPage] = useState(1)
+    const [tDoctorPage, setTDoctorPage] = useState(1)
+    const [totalDoctorAppointment, setTotalDoctorAppointment] = useState(0)
     const [labAppointments, setLabAppointments] = useState([])
+    const [appointments, setAppointments] = useState([])
     const [loading, setLoading] = useState(false)
     const dispatch = useDispatch()
     const { profiles, medicalHistory, demographic, labAppointment, kyc, prescription, isRequest } = useSelector(state => state.patient)
@@ -24,36 +28,57 @@ function MyAppointment() {
         dispatch(fetchPatientDetail())
     }, [dispatch])
     async function fetchLabAppointments() {
+        setLoading(true)
         try {
             const response = await getSecureApiData(`appointment/patient-lab/${userId}?page=${cLabPage}`)
             if (response.success) {
+                setLabAppointments(response.data)
                 setLabAppointments(response.data)
                 setTLabPage(response.totalPage)
                 setTotalLabAppointment(response.total)
             }
         } catch (error) {
 
+        } finally {
+            setLoading(false)
+        }
+    }
+    async function fetchDoctorAppointments() {
+        setLoading(true)
+        try {
+            const response = await getSecureApiData(`patient/appointment/${userId}?page=${doctorPage}`)
+            if (response.success) {
+                setAppointments(response.data)
+                setTDoctorPage(response.totalPage)
+                setTotalDoctorAppointment(response.totalDoctorApt)
+                setTotalLabAppointment(response.totalLabApt)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
         }
     }
     useEffect(() => {
         if (userId) {
             fetchLabAppointments()
+            fetchDoctorAppointments()
         }
     }, [userId])
-    
+
 
     const startChatWithUser = async (user) => {
         // create or get conversation
         console.log(user)
-        sessionStorage.setItem('fromAppointment',"true")
-        sessionStorage.setItem('chatUser',JSON.stringify(user))
+        sessionStorage.setItem('fromAppointment', "true")
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
         navigate('/chat')
     };
     const startCallWithUser = async (user) => {
         // create or get conversation
-        sessionStorage.setItem('voiceCall',"true")
-        sessionStorage.setItem('fromAppointment',"true")
-        sessionStorage.setItem('chatUser',JSON.stringify(user))
+        sessionStorage.setItem('voiceCall', "true")
+        sessionStorage.setItem('fromAppointment', "true")
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
         navigate('/chat')
     };
     return (
@@ -81,7 +106,7 @@ function MyAppointment() {
                                                     role="tab"
                                                 >
                                                     Doctor Appointment
-                                                    <span className="count-card">4</span>
+                                                    <span className="count-card">{totalDoctorAppointment}</span>
                                                 </a>
                                             </li>
 
@@ -113,163 +138,68 @@ function MyAppointment() {
                                                         <div className="all-profile-data-bx">
                                                             <div className="row">
                                                                 <div className="col-lg-12">
-                                                                    <div className="my-appointment-info-card mb-3">
-                                                                        <div className="my-appointment-tp-bx">
-                                                                            <div className="appoint-left-title-bx">
-                                                                                <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> 30 June 2025, at 10:00pm </h5>
-                                                                            </div>
-                                                                            <div className="appoint-right-title-bx">
-                                                                                <span className="nw-result-bx">Upcoming</span>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="appointment-info-parent-bx">
-                                                                            <div className="appointment-info-sub-bx">
-                                                                                <img src="/doctor-timing.png" alt="" />
-                                                                                <div className="appointment-info-details">
-                                                                                    <h4 className="">Dr.James Harris</h4>
-                                                                                    <h6 className="nw-appointment-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="appointment-info-mega-bx">
-                                                                                <div className="not-accpent-bx">
-                                                                                    <h6 className="not-accept-title">Not Accept</h6>
-                                                                                </div>
-
-                                                                                <div>
-                                                                                    <ul className="doctor-social-list">
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faVideo} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </a></li>
-                                                                                    </ul>
+                                                                    {appointments?.length > 0 ?
+                                                                        appointments?.map((item, key) =>
+                                                                            <div className="my-appointment-info-card mb-3" key={key}>
+                                                                                <div className="my-appointment-tp-bx">
+                                                                                    <div className="appoint-left-title-bx">
+                                                                                        <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> {formatDateTime(item?.date)}  </h5>
+                                                                                    </div>
+                                                                                    {new Date() < item?.date &&
+                                                                                        <div className="appoint-right-title-bx">
+                                                                                            <span className="nw-result-bx">Upcoming</span>
+                                                                                        </div>}
+                                                                                    {item?.status == 'cancel' && <div className="appoint-right-title-bx">
+                                                                                        <span className="nw-result-bx canceled-title">Canceled</span>
+                                                                                    </div>}
+                                                                                    {item?.status == 'pending' &&
+                                                                                        <div className="appoint-right-title-bx">
+                                                                                            <span className="nw-result-bx pending-bx">Pending</span>
+                                                                                        </div>}
+                                                                                    {item?.status == 'completed' &&
+                                                                                        <div className="appoint-right-title-bx">
+                                                                                            <span className="nw-result-bx completed-title">Completed</span>
+                                                                                        </div>
+                                                                                    }
                                                                                 </div>
 
-                                                                            </div>
+                                                                                <div className="appointment-info-parent-bx">
+                                                                                    <div className="appointment-info-sub-bx">
+                                                                                        <img src={item?.doctorId?.doctorId?.profileImage ?
+                                                                                            `${base_url}/${item?.doctorId?.doctorId?.profileImage}` : "/lab-pic.png"} alt="" />
+                                                                                        <div className="appointment-info-details">
+                                                                                            <h4 className="">{item?.doctorId?.name}</h4>
+                                                                                            <h6 className="nw-appointment-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName}</h6>
+                                                                                            <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAddress?.cityId?.name + ", " +
+                                                                                                item?.doctorAddress?.stateId?.name}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="appointment-info-mega-bx">
+                                                                                        {item?.status == 'rejected' && <div className="not-accpent-bx">
+                                                                                            <h6 className="not-accept-title">Not Accept</h6>
+                                                                                        </div>}
+                                                                                        {item?.status == 'approved' && <div className="not-accpent-bx">
+                                                                                            <h6 className="not-accept-title accept-title">Accept Request</h6>
+                                                                                        </div>}
+                                                                                        {item?.status!=='rejected' && item?.status!=='approved' && 
+                                                                                        <div></div>}
 
-                                                                        </div>
+                                                                                        <div>
+                                                                                            <ul className="doctor-social-list">
+                                                                                                <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </a></li>
+                                                                                                <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </a></li>
+                                                                                                <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faVideo} /> </a></li>
+                                                                                                <li className="doctor-social-item"><Link to={`/appointment-detail/${item?.doctorId?.name}/${item?._id}`} className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </Link></li>
+                                                                                            </ul>
+                                                                                        </div>
 
-                                                                    </div>
+                                                                                    </div>
 
-                                                                    <div className="my-appointment-info-card mb-3">
-                                                                        <div className="my-appointment-tp-bx">
-                                                                            <div className="appoint-left-title-bx">
-                                                                                <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> 30 June 2025, at 10:00pm </h5>
-                                                                            </div>
-                                                                            <div className="appoint-right-title-bx">
-                                                                                <span className="nw-result-bx">Upcoming</span>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="appointment-info-parent-bx">
-                                                                            <div className="appointment-info-sub-bx">
-                                                                                <img src="/doctor-timing.png" alt="" />
-                                                                                <div className="appointment-info-details">
-                                                                                    <h4 className="">Dr.James Harris</h4>
-                                                                                    <h6 className="nw-appointment-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="appointment-info-mega-bx">
-                                                                                <div className="not-accpent-bx">
-                                                                                    <h6 className="not-accept-title accept-title">Accept Request</h6>
-                                                                                </div>
-
-                                                                                <div>
-                                                                                    <ul className="doctor-social-list">
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faVideo} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </a></li>
-                                                                                    </ul>
                                                                                 </div>
 
-                                                                            </div>
-                                                                        </div>
+                                                                            </div>) : 'No doctor Appointment'}
 
-                                                                    </div>
-
-                                                                    <div className="my-appointment-info-card mb-3">
-                                                                        <div className="my-appointment-tp-bx">
-                                                                            <div className="appoint-left-title-bx">
-                                                                                <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> 30 June 2025, at 10:00pm </h5>
-                                                                            </div>
-                                                                            <div className="appoint-right-title-bx">
-                                                                                <span className="nw-result-bx completed-title">Completed</span>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="appointment-info-parent-bx">
-                                                                            <div className="appointment-info-sub-bx">
-                                                                                <img src="/doctor-timing.png" alt="" />
-                                                                                <div className="appointment-info-details">
-                                                                                    <h4 className="">Dr.James Harris</h4>
-                                                                                    <h6 className="nw-appointment-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="appointment-info-mega-bx">
-                                                                                <div className="not-accpent-bx">
-                                                                                    {/* <h6 className="not-accept-title accept-title">Accept Request</h6> */}
-                                                                                </div>
-
-                                                                                <div>
-                                                                                    <ul className="doctor-social-list">
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faVideo} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </a></li>
-                                                                                    </ul>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-
-                                                                    </div>
-
-
-                                                                    <div className="my-appointment-info-card mb-3">
-                                                                        <div className="my-appointment-tp-bx">
-                                                                            <div className="appoint-left-title-bx">
-                                                                                <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> 30 June 2025, at 10:00pm </h5>
-                                                                            </div>
-                                                                            <div className="appoint-right-title-bx">
-                                                                                <span className="nw-result-bx canceled-title">Canceled</span>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="appointment-info-parent-bx">
-                                                                            <div className="appointment-info-sub-bx">
-                                                                                <img src="/doctor-timing.png" alt="" />
-                                                                                <div className="appointment-info-details">
-                                                                                    <h4 className="">Dr.James Harris</h4>
-                                                                                    <h6 className="nw-appointment-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="appointment-info-mega-bx">
-                                                                                <div className="not-accpent-bx">
-                                                                                    {/* <h6 className="not-accept-title accept-title">Accept Request</h6> */}
-                                                                                </div>
-
-                                                                                <div>
-                                                                                    <ul className="doctor-social-list">
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="doctor-social-btn" > <FontAwesomeIcon icon={faVideo} /> </a></li>
-                                                                                        <li className="doctor-social-item"><a href="javascript:void(0)" className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </a></li>
-                                                                                    </ul>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="mt-2">
-                                                                            <p className="appoint-cancel">Cancel Date :30 June 2025,  10:00pm</p>
-                                                                        </div>
-
-                                                                    </div>
-
+                                                                    
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -322,11 +252,13 @@ function MyAppointment() {
                                                                                         {item?.status == 'approved' && <div className="not-accpent-bx">
                                                                                             <h6 className="not-accept-title accept-title">Accept Request</h6>
                                                                                         </div>}
+                                                                                        {item?.status!=='rejected' && item?.status!=='approved' && 
+                                                                                        <div></div>}
 
                                                                                         <div>
                                                                                             <ul className="doctor-social-list">
-                                                                                                <li className="doctor-social-item"><button onClick={()=>startChatWithUser(item)} className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </button></li>
-                                                                                                <li className="doctor-social-item"><button onClick={()=>startCallWithUser(item)} className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </button></li>
+                                                                                                <li className="doctor-social-item"><button onClick={() => startChatWithUser(item)} className="doctor-social-btn" > <FontAwesomeIcon icon={faMessage} /> </button></li>
+                                                                                                <li className="doctor-social-item"><button onClick={() => startCallWithUser(item)} className="doctor-social-btn" > <FontAwesomeIcon icon={faPhone} /> </button></li>
                                                                                                 <li className="doctor-social-item"><Link to={`/lab-upcoming/${item?.labId?.labId.name}/${item?._id}`} className="nw-vertical-btn" > <FontAwesomeIcon icon={faEllipsisVertical} /> </Link></li>
                                                                                             </ul>
                                                                                         </div>

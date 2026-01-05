@@ -1,4 +1,4 @@
-import { faAmbulance, faArrowRightFromBracket, faCalendarPlus, faCircleXmark, faCreditCard, faFile, faFlask, faHeart, faKey, faMessage, faShareAlt, faUserEdit } from "@fortawesome/free-solid-svg-icons"
+import { faAmbulance, faArrowRightFromBracket, faCalendarPlus, faCircleXmark, faCreditCard, faFile, faFlask, faHeart, faKey, faMessage, faShareAlt, faSyringe, faUserEdit } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useDispatch, useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
@@ -42,9 +42,8 @@ function ProfileSidebar() {
                         <li className="nw-profile-item"><Link to='/lab-report' className="nw-nav-link"> <FontAwesomeIcon icon={faFlask} className="nw-nav-icon" /> Lab Report</Link></li>
 
                         <li className="nw-profile-item"><Link to='/prescription' className="nw-nav-link"> <FontAwesomeIcon icon={faFile} className="nw-nav-icon" />Prescriptions</Link></li>
-
+                        <li className="nw-profile-item"><Link to='/prescription' className="nw-nav-link"> <FontAwesomeIcon icon={faSyringe} className="nw-nav-icon" />Vaccination</Link></li>
                         <li className="nw-profile-item"><Link to='/ambulance-booking-histroy' className="nw-nav-link"> <FontAwesomeIcon icon={faAmbulance} className="nw-nav-icon" />Ambulance Booking History</Link></li>
-
                         <li className="nw-profile-item"><Link to='/profile' className="nw-nav-link"> <FontAwesomeIcon icon={faUserEdit} className="nw-nav-icon" />Profile</Link></li>
 
                         <li className="nw-profile-item"><Link to='/health-card-details' className="nw-nav-link"> <FontAwesomeIcon icon={faCreditCard} className="nw-nav-icon" />My NeoHealthCard</Link></li>

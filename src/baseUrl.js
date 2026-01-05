@@ -1,5 +1,5 @@
-const base_url='https://apiphaneo.divanex.in'
-const client_url='https://apiphaneo.divanex.in'
+const base_url='http://localhost:4000'
+const client_url='https://noepatient.divanex.in/'
 
 
 

@@ -1,8 +1,41 @@
 import { faLocationDot, faRoute, } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProfileSidebar from "./ProfileSidebar"
+import { useEffect, useState } from "react"
+import { getSecureApiData, securePostData } from "../../Services/api"
+import base_url from "../../baseUrl"
+import { Link } from "react-router-dom"
 
 function Favorite() {
+    const userId = localStorage.getItem('userId')
+    const [favIds, setFavIds] = useState([])
+    const [activeTab,setActiveTab]=useState('')
+    const [counts,setCounts]=useState()
+    async function fetchFavData() {
+        const result = await getSecureApiData(`patient/favorite-data/${userId}?limit=1000000&type=${activeTab}`)
+        if (result.success) {
+            setFavIds(result.data)
+            setCounts(result.counts)
+        }
+    }
+
+    useEffect(() => {
+        fetchFavData()
+    }, [userId,activeTab])
+    const handleFavorite = async (id) => {
+        const data = { userId, labId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
     return (
         <>
             <section className="new-profile-section">
@@ -28,10 +61,12 @@ function Favorite() {
                                                     data-bs-toggle="tab"
                                                     href="#home"
                                                     role="tab"
+                                                    onClick={()=>setActiveTab('doctor')}
+
                                                 >
                                                     Doctor
 
-                                                    <span className="count-card">6</span>
+                                                    <span className="count-card">{counts?.doctor}</span>
 
 
                                                 </a>
@@ -44,10 +79,12 @@ function Favorite() {
                                                     data-bs-toggle="tab"
                                                     href="#profile"
                                                     role="tab"
+                                                    onClick={()=>setActiveTab('hospital')}
+
                                                 >
                                                     Hospital
 
-                                                    <span className="count-card">4</span>
+                                                    <span className="count-card">{counts?.hospital}</span>
                                                 </a>
                                             </li>
 
@@ -58,10 +95,11 @@ function Favorite() {
                                                     data-bs-toggle="tab"
                                                     href="#contact"
                                                     role="tab"
+                                                    onClick={()=>setActiveTab('lab')}
                                                 >
                                                     Lab
 
-                                                    <span className="count-card">4</span>
+                                                    <span className="count-card">{counts?.lab}</span>
                                                 </a>
                                             </li>
 
@@ -345,112 +383,36 @@ function Favorite() {
                                                     <div className="tab-pane fade" id="contact" role="tabpanel">
                                                         <div className="all-profile-data-bx">
                                                             <div className="row">
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/lab-pic.png" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Advance Lab Tech</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
+                                                                {favIds?.length > 0 &&
+                                                                    favIds?.map((item, key) =>
+                                                                        <div className="col-lg-6 col-md-12 col-sm-12 mb-3" key={key}>
+                                                                            <div className="lab-technology-card">
+                                                                                <div className="doctor-mega-card">
+                                                                                    <div className="doctor-pic-bx">
+                                                                                        <img src={item?.labId?.labId?.logo ?
+                                                                                            `${base_url}/${item?.labId?.labId?.logo}` : "/lab-pic.png"} alt="" />
                                                                                     </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/lab-pic.png" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Advance Lab Tech</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                                                    <div className="doctor-details  flex-grow-1">
+                                                                                        <h4 className="innr-title fz-700">{item?.labId?.labId?.name}</h4>
+                                                                                        <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                                                        <div className="my-3">
+                                                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
 
-                                                                                </div>
+                                                                                        </div>
 
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
+                                                                                        <div className="  d-flex align-items-center justify-content-between">
+                                                                                            <div>
+                                                                                                <button type="button" onClick={()=>handleFavorite(item?.labId._id)} className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></button>
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <Link to={`/lab-detail/${item?.labId?.labId?.name}/${item?.labId?._id}`} className="nw-thm-btn">View Details</Link>
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/lab-pic.png" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Advance Lab Tech</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/lab-pic.png" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Advance Lab Tech</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-
+                                                                        </div>)}
+                                                                
                                                             </div>
                                                         </div>
 

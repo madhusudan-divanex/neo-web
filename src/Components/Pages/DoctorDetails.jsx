@@ -1,7 +1,99 @@
 import { faHome } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RatingSlider from "./RatingSlider";
+import base_url, { client_url } from "../../baseUrl";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getApiData, getSecureApiData, securePostData } from "../../Services/api";
+import { toast } from "react-toastify";
 function DoctorDetails() {
+  const params = useParams()
+  const navigate = useNavigate()
+  const userId = localStorage.getItem('userId')
+  const [isFull, setIsFull] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [doctorCertificate, setDoctorCertificate] = useState([])
+  const [doctorData, setDoctorData] = useState([])
+  const [doctorAbout, setDoctorAbout] = useState()
+  const [totalPaitents, setTotalPatients] = useState(0)
+  const [avgRating, setAvgRating] = useState(0)
+  const [ratings, setRatings] = useState([])
+  const [favIds, setFavIds] = useState([])
+  const [doctorTest, setDoctorTest] = useState([])
+  const [selectedTest, setSelectedTest] = useState([])
+  async function fetchDoctorData() {
+    setLoading(true)
+    try {
+      const result = await getApiData(`doctor/data/${params.id}`)
+      if (result.success) {
+        setRatings(result.rating)
+        setDoctorCertificate(result.doctorLicense?.medicalLicense)
+        setAvgRating(result.avgRating)
+        setDoctorData(result.user)
+        setTotalPatients(result.totalPatients)
+        setDoctorAbout(result.doctorAbout)
+        setIsFull(result?.doctorAbout?.aboutYou > 150 ? true : false)
+      }
+    } catch (error) {
+
+    } finally {
+      setLoading(false)
+    }
+  }
+  async function fetchFavData() {
+    const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
+    if (result.success) {
+      setFavIds(result.data)
+    }
+  }
+
+  useEffect(() => {
+    fetchDoctorData()
+  }, [params])
+  useEffect(() => {
+    fetchFavData()
+  }, [userId])
+  const handleFavorite = async () => {
+    const data = { userId, doctorId: params.id }
+    try {
+      const response = await securePostData('patient/favorite', data)
+      if (response.success) {
+        // toast.success("")
+        fetchFavData()
+      } else {
+        toast.success(response.message)
+      }
+    } catch (error) {
+
+    }
+  }
+  const handleCopy = () => {
+    const text = `${client_url}/doctor-details/${params?.name}/${params.id}`;
+    if (navigator.clipboard && window.isSecureContext) {
+      // Modern clipboard API
+      navigator.clipboard
+        .writeText(text)
+        .then(() => toast.success("Copied to clipboard!"))
+        .catch(() => toast.error("Copy failed"));
+    } else {
+      // Fallback for HTTP / older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        toast.success("Copied to clipboard!");
+      } catch (err) {
+        toast.error("Copy failed");
+      }
+      document.body.removeChild(textArea);
+    }
+
+  };
 
   return (
     <>
@@ -42,19 +134,24 @@ function DoctorDetails() {
                 <div className="doctor-parent-crd ">
                   <div className="doctor-detailsseaction-contant">
                     <div className="doctor-detailsseaction-contant-img">
-                      <img src="/docer.png" alt="doctor" />
+                      <img src={doctorData?.profileImage ?
+                        `${base_url}/${doctorData?.profileImage}` :
+                        "/docer.png"} alt="doctor" />
                     </div>
                     <div className="doctor-detailsseaction-contant-text flex-grow-1 ">
                       <div className="d-flex justify-content-between  align-items-start">
                         <div className="docotr-estetment-bx">
-                          <h4>Dr. James Harris</h4>
-                          <h6> Psychologists  <span className="slash-title"> | </span> Mercy Hospital </h6>
-                          <p> Language : <span className="language-title">English</span> </p>
-                          <h5> <i className="fas fa-map-marker-alt me-1" style={{color : "#052F59"}}></i> Malviya Nagar, Jaipur </h5>
+                          <h4>Dr. {doctorData?.name}</h4>
+                          <h6> {doctorAbout?.specialty}  <span className="slash-title"> | </span> {doctorAbout?.hospitalName} </h6>
+                          <p> Language : <span className="language-title">{doctorAbout?.language?.map(l => l).join(', ')}</span> </p>
+                          <h5> <i className="fas fa-map-marker-alt me-1" style={{ color: "#052F59" }}></i> {doctorAbout?.cityId?.name + ', ' + doctorAbout?.stateId?.name} </h5>
                         </div>
                         <div className="ms-auto d-flex gap-3">
-                          <a href="javascript:void(0)" className="heart-btn"><i className="far fa-heart"></i></a>
-                          <a href="javascript:void(0)" className="heart-btn"><i className="fas fa-share-alt"></i></a>
+                          <button className="heart-btn" onClick={handleFavorite}>
+                            {favIds?.some(fav => fav?.doctorId === params.id) ?
+                              <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                              : <i className="fa-regular fa-heart"></i>}</button>
+                          <button className="heart-btn" onClick={handleCopy}><i className="fas fa-share-alt"></i></button>
                         </div>
                       </div>
                       <div className="contentcardicon mt-3">
@@ -63,7 +160,7 @@ function DoctorDetails() {
                             <span className="doctor-nw-icon"><i className="fas fa-user-friends"></i></span>
                           </div>
                           <div>
-                            <h5>2,000+</h5>
+                            <h5>{totalPaitents}</h5>
                             <p>Patients</p>
                           </div>
                         </div>
@@ -72,8 +169,8 @@ function DoctorDetails() {
                             <span className="doctor-nw-icon"><i className="fas fa-award"></i></span>
                           </div>
                           <div>
-                            <h5>10+</h5>
-                            <p>Patients</p>
+                            <h5>{doctorCertificate?.length}</h5>
+                            <p>Certificates</p>
                           </div>
                         </div>
                         <div className=" d-flex align-items-center gap-3">
@@ -81,7 +178,7 @@ function DoctorDetails() {
                             <span className="doctor-nw-icon"> <i class="fas fa-star"></i></span>
                           </div>
                           <div>
-                            <h5>5</h5>
+                            <h5>{avgRating}</h5>
                             <p>Rating</p>
                           </div>
                         </div>
@@ -90,13 +187,13 @@ function DoctorDetails() {
                             <span className="doctor-nw-icon"><i className="fas fa-money-bill-wave"></i></span>
                           </div>
                           <div>
-                            <h5>$25.00</h5>
+                            <h5>${doctorAbout?.fees}</h5>
                             <p>Fees</p>
                           </div>
                         </div>
                       </div>
                       <div className="text-end mt-4">
-                        <a href="#" className='nw-thm-btn'>Book Appointment</a>
+                        <Link to={`/book-doctor-appointment/${doctorData?.name}/${doctorData?.userId}`} className='nw-thm-btn'>Book Appointment</Link>
                       </div>
                     </div>
                   </div>
@@ -105,22 +202,23 @@ function DoctorDetails() {
 
               <div className="about-me">
                 <h2>About Me</h2>
-                <p className="new_para about-para">“Highly motivated and experienced doctor with a passion for providing excellent care to patients. Experienced in a wide variety of medical settings, with particular expertise in diagnostics, primary care and emergency medicine. Skilled in using the latest technology to streamline patient care. Committed to delivering compassionate, personalized care to each and every patient.” <a href="#" className="more-btn">Read More</a> </p>
+                <p className="new_para about-para">“{!isFull ?
+                  doctorAbout?.aboutYou?.slice(0, 150) : doctorAbout?.aboutYou}” {doctorAbout?.aboutYou?.length > 150 && <button onClick={() => setIsFull(!isFull)} className="more-btn">{isFull ?
+                    'Read Less' : 'Read More'}</button>} </p>
               </div>
 
               <div className="about-me specialty-bx my-3">
                 <h2>Specialty</h2>
                 <ul className="specialty-list">
-                  <li className="specialty-item"> <span className="specialty-title"> Psychologists</span></li>
+                  <li className="specialty-item"> <span className="specialty-title"> {doctorAbout?.specialty}</span></li>
                 </ul>
               </div>
 
               <div className="about-me specialty-bx">
                 <h2>Treatment Areas</h2>
                 <ul className="specialty-list">
-                  <li className="specialty-item"> <span className="specialty-title"> Cosmetic Surgery</span></li>
-                  <li className="specialty-item"> <span className="specialty-title"> Neurology</span></li>
-                  <li className="specialty-item"> <span className="specialty-title"> General Surgery</span></li>
+                  {doctorAbout?.treatmentAreas?.map((t, key) =>
+                    <li className="specialty-item" key={key}> <span className="specialty-title"> {t}</span></li>)}
                 </ul>
               </div>
 
@@ -129,7 +227,7 @@ function DoctorDetails() {
         </div>
       </section>
 
-      <RatingSlider />
+      <RatingSlider ratings={ratings} />
 
 
     </>

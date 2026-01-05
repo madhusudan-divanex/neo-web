@@ -6,8 +6,8 @@ import "@splidejs/splide/dist/css/splide.min.css";
 import { useRef } from "react";
 import base_url from "../../baseUrl";
 
-function RatingSlider({ratings}) {
-console.log(ratings)
+function RatingSlider({ ratings }) {
+    console.log(ratings)
     //    const splideRef = useRef(null);
 
     // const nextSlide = () => {
@@ -18,25 +18,15 @@ console.log(ratings)
     //     splideRef.current.splide.go("<");
     // };
 
-    const slider1 = useRef(null);
-    const slider2 = useRef(null);
-    const slider3 = useRef(null);
+    const sliderRef = useRef(null);
 
-    const nextSlide = () => {
-        slider1.current.splide.go(">");
-        slider2.current.splide.go(">");
-        slider3.current.splide.go(">");
-    };
+    const nextSlide = () => sliderRef.current.splide.go(">");
+    const prevSlide = () => sliderRef.current.splide.go("<");
 
-    const prevSlide = () => {
-        slider1.current.splide.go("<");
-        slider2.current.splide.go("<");
-        slider3.current.splide.go("<");
-    };
 
     return (
         <>
-           
+
             <section className="rating-section pb-5">
                 <div className="container">
                     <div className="row">
@@ -55,18 +45,26 @@ console.log(ratings)
                                 </div>
                             </div>
 
-                            
+
                             <Splide
-                                ref={slider1}
+                                ref={sliderRef}
                                 options={{
-                                    type: "loop",
+                                    type: ratings?.length > 6 ? "loop" : "slide", // 👈 FIX
                                     perPage: 2,
                                     perMove: 1,
-                                    autoplay: true,
+                                    autoplay: ratings?.length > 6,
                                     pagination: false,
-                                    interval: 2500,
-                                    speed: 800,
                                     arrows: false,
+
+                                    grid: {
+                                        rows: 3,
+                                        cols: 2,
+                                        gap: {
+                                            row: "20px",
+                                            col: "20px",
+                                        },
+                                    },
+
                                     gap: "20px",
                                     breakpoints: {
                                         992: { perPage: 2, gap: "15px" },
@@ -74,69 +72,37 @@ console.log(ratings)
                                     },
                                 }}
                             >
-                               
-                                {ratings?.map((item,key)=>
-                                <SplideSlide key={key}> <div className="EmilyAnderson-contar mb-3">
-                                    <div className="EmilyAnderson">
-                                        <img src={
-                                            item?.patientId?.patientId?.profileImage?
-                                            `${base_url}/${item?.patientId?.patientId?.profileImage}`:"/DoctorDetails-img.png"} alt="" />
-                                        <div>
-                                            <h5>{item?.patientId?.name}</h5>
-                                            <p>
-                                                5.0 <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                            </p>
+
+
+
+                                {ratings?.map((item, key) =>
+                                    <SplideSlide key={key}> <div className="EmilyAnderson-contar mb-3">
+                                        <div className="EmilyAnderson">
+                                            <img src={
+                                                item?.patientId?.patientId?.profileImage ?
+                                                    `${base_url}/${item?.patientId?.patientId?.profileImage}` : "/DoctorDetails-img.png"} alt="" />
+                                            <div>
+                                                <h5>{item?.patientId?.name}</h5>
+                                                <p>
+                                                    {item?.star} {[...Array(5)].map((_, index) => (
+                                                        <i
+                                                            key={index}
+                                                            className={`fas fa-star ${index < item?.star ? "active" : "inactive"}`}
+                                                        ></i>
+                                                    ))}
+                                                </p>
+                                            </div>
                                         </div>
+                                        <p>
+                                            {item?.message}
+                                        </p>
                                     </div>
-                                    <p>
-                                        {item?.message}
-                                    </p>
-                                </div>
-                                </SplideSlide>)}
-                                <SplideSlide>
-                                     <div className="EmilyAnderson-contar mb-3">
-                                    <div className="EmilyAnderson">
-                                        <img src="/DoctorDetails-img.png" alt="" />
-                                        <div>
-                                            <h5>Emily Anderson</h5>
-                                            <p>
-                                                5.0 <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <p>
-                                        Dr. Patel is a true professional who genuinely cares about his patients.
-                                        I highly recommend Dr. Patel to anyone seeking exceptional cardiac care.
-                                    </p>
-                                </div>
-                                </SplideSlide>
-                                <SplideSlide>
-                                     <div className="EmilyAnderson-contar mb-3">
-                                    <div className="EmilyAnderson">
-                                        <img src="/DoctorDetails-img.png" alt="" />
-                                        <div>
-                                            <h5>Emily Anderson</h5>
-                                            <p>
-                                                5.0 <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                                <i className="fas fa-star"></i> <i className="fas fa-star"></i>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <p>
-                                        Dr. Patel is a true professional who genuinely cares about his patients.
-                                        I highly recommend Dr. Patel to anyone seeking exceptional cardiac care.
-                                    </p>
-                                </div>
-                                </SplideSlide>
+                                    </SplideSlide>)}
+
                             </Splide>
 
-                           
-                            <Splide
+
+                            {/* <Splide
                                 ref={slider2}
                                 options={{
                                     type: "loop",
@@ -211,10 +177,10 @@ console.log(ratings)
                                     </p>
                                 </div> 
                                 </SplideSlide>
-                            </Splide>
+                            </Splide> */}
 
-                            
-                            <Splide
+
+                            {/* <Splide
                                 ref={slider3}
                                 options={{
                                     type: "loop",
@@ -289,7 +255,7 @@ console.log(ratings)
                                     </p>
                                 </div>
                                 </SplideSlide>
-                            </Splide>
+                            </Splide> */}
                         </div>
                     </div>
                 </div>

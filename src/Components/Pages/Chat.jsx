@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 import AudioWaveform from "../AudioWaveform";
+import base_url from "../../baseUrl";
+import Loader from "../Layouts/Loader";
 function Chat() {
     const ringtoneRef = useRef(null);
     const hasStartedChat = useRef(false);
@@ -14,6 +16,7 @@ function Chat() {
     const callTimerRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
+    const [loading, setLoading] = useState(false)
     const [recording, setRecording] = useState(false);
     const [recordedAudio, setRecordedAudio] = useState(null);
     const [recordSeconds, setRecordSeconds] = useState(0);
@@ -46,9 +49,8 @@ function Chat() {
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
 
-    const myUser = JSON.parse(localStorage.getItem("user"));
-    const myUserId = myUser?.id;
-    const SERVER_BASE_URL = "http://localhost:4000";
+    const myUserId = localStorage.getItem("userId")
+    const SERVER_BASE_URL = base_url;
 
 
     const formatTime = (sec) => {
@@ -296,11 +298,17 @@ function Chat() {
     // ================= SOCKET INIT =================
     useEffect(() => {
         console.log(localStorage.getItem("token"))
-        socketRef.current = io("http://localhost:4000", {
+        socketRef.current = io(base_url, {
             auth: { token: localStorage.getItem("token") },
         });
 
         socketRef.current.on("receive-message", (msg) => {
+            getSecureApiData("api/chat/conversations").then((res) => {
+                setChatList(res.data);
+                // if(!selectedChat && !sessionStorage.getItem('chatUser')){
+                //     setSelectedChat(res.data[0])
+                // }
+            });
             setMessages((prev) => [...prev, msg]);
         });
 
@@ -374,9 +382,11 @@ function Chat() {
 
     // ================= OPEN CHAT =================
     const openChat = async (chat) => {
+        setLoading(true)
         setSelectedChat(chat);
         const res = await getSecureApiData(`api/chat/messages/${chat._id}`);
         setMessages(res.data);
+        setLoading(false)
     };
 
     // ================= SEND MESSAGE =================
@@ -494,7 +504,7 @@ function Chat() {
 
     const startChatWithUser = async (user) => {
         const res = await securePostData("api/chat/create", {
-            userId:sessionStorage.getItem('fromAppointment') ?user.labId?._id : user._id,
+            userId: sessionStorage.getItem('fromAppointment') ? user.labId?._id : user._id,
         });
         const conversation = res.data;
 
@@ -504,7 +514,7 @@ function Chat() {
         setSelectedChat(conversation);
 
         const msgRes = await getSecureApiData(`api/chat/messages/${conversation._id}`);
-        console.log("msgRes",msgRes)
+        console.log("msgRes", msgRes)
         setMessages(msgRes.data);
 
         // add to chat list if new
@@ -516,288 +526,278 @@ function Chat() {
         sessionStorage.removeItem('fromAppointment')
     };
     useEffect(() => {
-    if (!hasStartedChat.current && sessionStorage.getItem('chatUser')) {
-      startChatWithUser(JSON.parse(sessionStorage.getItem('chatUser')));
-      hasStartedChat.current = true;
-    }
-    if (!hasStartedCall.current && sessionStorage.getItem('voiceCall')) {
-      startCall("voice");
-      hasStartedCall.current = true;
-    }
-  }, []);
-  
+        if (!hasStartedChat.current && sessionStorage.getItem('chatUser')) {
+            startChatWithUser(JSON.parse(sessionStorage.getItem('chatUser')));
+            hasStartedChat.current = true;
+        }
+        if (!hasStartedCall.current && sessionStorage.getItem('voiceCall')) {
+            startCall("voice");
+            hasStartedCall.current = true;
+        }
+    }, []);
+
     return (
         <>
-            <section className="chat-section">
-                <div className="container">
-                    <div className="row">
-                        <div className="col-lg-3 pe-lg-0 mb-3">
-                            <div className="chat-left-usr-bx">
-                                <div>
-                                    <h6>Message</h6>
-
-                                    <div className="custom-frm-bx">
-                                        <input
-                                            type="text"
-                                            className="form-control px-5"
-                                            placeholder="Search user..."
-                                            value={searchText}
-                                            onChange={async (e) => {
-                                                const value = e.target.value;
-                                                setSearchText(value);
-
-                                                if (value.length < 2) {
-                                                    setSearchUsers([]);
-                                                    return;
-                                                }
-
-                                                const res = await getSecureApiData(`api/comman/search?q=${value}`);
-                                                setSearchUsers(res.data);
-                                            }}
-                                        />
-                                        <div className="chat-search-bx">
-                                            <a href="#" className="chat-search-btn">
-                                                <FontAwesomeIcon icon={faSearch} />
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {searchUsers?.length > 0 && (
-                                        <div className="search-user-results">
-                                            {searchUsers?.map((user) => (
-                                                <div
-                                                    key={user._id}
-                                                    className="chat-usr-card"
-                                                    onClick={() => startChatWithUser(user)}
-                                                >
-                                                    <div className="chat-usr-info">
-                                                        <h5>{user.name}</h5>
-                                                        <small>{user.email}</small>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {chatList?.map((chat) => (
-                                        <a href="#" key={chat._id}>
-                                            <div
-                                                className="chat-usr-card nw-chat-usr-card"
-                                                onClick={() => openChat(chat)}
-                                            >
-                                                <div className="d-flex align-items-center justify-content-between">
-                                                    <div className="chat-usr-avatr-crd">
-                                                        <div className="chat-usr-avatr-bx">
-                                                            <img src="/profile.png" alt="" />
-                                                        </div>
-                                                        <div className="chat-usr-info">
-                                                            <h5>{chat.participants[0]?.name}</h5>
-                                                            <p>{chat.lastMessage}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {chat.unreadCount > 0 && (
-                                                        <div className="chat-count-bx me-lg-3">
-                                                            <span className="chat-count-title">
-                                                                {chat.unreadCount}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-9 mb-3">
-                            <div className="right-chat-card chat-tp-header">
-                                <div className="lab-tp-title patient-bio-tab  d-flex align-items-center justify-content-between py-2">
-                                    <div className="">
-                                        <div className="d-flex align-items-center justify-content-between">
-                                            <div className="chat-usr-avatr-crd">
-                                                <div className="chat-usr-avatr-bx nw-chat-add-live">
-                                                    <img src="/chat-logo.jpg" alt="" />
-                                                </div>
-
-                                                <div className="chat-usr-info">
-                                                    <h5 className="mb-0">{selectedChat?.participants[0]?.name || "Select Chat"}</h5>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="add-nw-bx d-flex gap-4">
-                                        <button onClick={() => startCall("voice")} className="text-black calling-btn">
-                                            <FontAwesomeIcon icon={faPhone} style={{ color: "#FEB052" }} />
-                                        </button>
-
-                                        <button onClick={() => startCall("video")} className="text-black calling-btn">
-                                            <FontAwesomeIcon icon={faVideo} style={{ color: "#FEB052" }} />
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                                <div className="all-chating-content-bx">
-                                    <div className="chat-container">
-                                        {messages?.map((msg, i) => {
-                                            const isMe = msg.sender._id === myUserId;
-                                            return (
-                                                <div
-                                                    key={i}
-                                                    className={`d-flex align-items-start mb-4 ${isMe ? "justify-content-end" : ""
-                                                        }`}
-                                                >
-                                                    <div>
-                                                        <div
-                                                            className={`chat-bubble ${isMe ? "nw-right" : "nw-left"
-                                                                }`}
-                                                        >
-                                                            {msg.message && (
-                                                                <p className={isMe &&"text-white"}>{msg.message}</p>
-                                                            )}
-                                                            {msg.file && (
-                                                                msg.file.type?.startsWith("audio/") ? (
-                                                                    <audio
-                                                                        controls
-                                                                        src={`${SERVER_BASE_URL}${msg.file.url}`}
-                                                                        style={{ width: "240px" }}
-                                                                    />
-                                                                ) : (
-                                                                    <img
-                                                                        src={`${SERVER_BASE_URL}${msg.file.url}`}
-                                                                        alt={msg.file.name}
-                                                                        style={{
-                                                                            maxWidth: "220px",
-                                                                            borderRadius: "8px",
-                                                                            cursor: "pointer",
-                                                                        }}
-                                                                        onClick={() =>
-                                                                            window.open(
-                                                                                `${SERVER_BASE_URL}${msg.file.url}`,
-                                                                                "_blank"
-                                                                            )
-                                                                        }
-                                                                    />
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-
-                                        {typingUser && <p className="typing-text">Typing...</p>}
-                                        <div ref={bottomRef} />
-                                    </div>
-
-
-
-                                    <div className="">
-                                        {recording && (
-                                            <div className="recording-indicator mb-2">
-                                                <span className="text-danger fw-bold">
-                                                    🔴 Recording… {recordSeconds}s
-                                                </span>
-                                                <small className="d-block text-muted">
-                                                    Tap mic to stop
-                                                </small>
-                                            </div>
-                                        )}
-
-                                        {recordedAudio && (
-                                            <div className="audio-preview mb-2">
-                                                <small className="text-success d-block mb-1">
-                                                    🎧 Audio ready to send
-                                                </small>
-
-                                                <AudioWaveform audioBlob={recordedAudio} />
-
-                                                <button
-                                                    className="btn btn-sm btn-outline-danger mt-1"
-                                                    onClick={() => setRecordedAudio(null)}
-                                                >
-                                                    ❌ Cancel Audio
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        <div className="custom-frm-bx mb-0">
+            {loading ? <Loader />
+                : <section className="chat-section">
+                    <div className="container">
+                        <div className="row">
+                            <div className="col-lg-3 pe-lg-0 mb-3">
+                                <div className="chat-left-usr-bx">
+                                    <div>
+                                        <h6>Message</h6>
+                                        <div className="custom-frm-bx">
                                             <input
                                                 type="text"
                                                 className="form-control px-5"
-                                                value={message}
-                                                onChange={(e) => setMessage(e.target.value)}
-                                                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                                                placeholder="Search user..."
+                                                value={searchText}
+                                                onChange={async (e) => {
+                                                    const value = e.target.value;
+                                                    setSearchText(value);
+                                                    if (value.length < 2) {
+                                                        setSearchUsers([]);
+                                                        return;
+                                                    }
+                                                    const res = await getSecureApiData(`api/comman/search?q=${value}`);
+                                                    setSearchUsers(res.data);
+                                                }}
                                             />
-
-                                            <div className="chat-papperclip-bx">
-                                                {/* 📎 FILE */}
-                                                <button
-                                                    type="button"
-                                                    className="papperclip-btn"
-                                                    onClick={() => fileInputRef.current.click()}
-                                                >
-                                                    <FontAwesomeIcon icon={faPaperclip} />
-                                                </button>
-
-                                                {/* 🎤 MIC */}
-                                                <button
-                                                    type="button"
-                                                    className={`mic-btn ${recording ? "recording" : ""}`}
-                                                    onClick={toggleRecording}
-                                                >
-                                                    {recording ? "⏹️" : "🎤"}
-                                                </button>
+                                            <div className="chat-search-bx">
+                                                <a href="#" className="chat-search-btn">
+                                                    <FontAwesomeIcon icon={faSearch} />
+                                                </a>
                                             </div>
-                                            {previewUrl && (
-                                                <div className="image-preview mb-2">
-                                                    <img
-                                                        src={previewUrl}
-                                                        alt="preview"
-                                                        style={{
-                                                            maxWidth: "200px",
-                                                            borderRadius: "8px",
-                                                            display: "block",
-                                                            marginBottom: "5px",
-                                                        }}
-                                                    />
-                                                    <small className="text-muted">🖼 Image ready to send</small>
+                                        </div>
+                                        {searchUsers?.length > 0 && (
+                                            <div className="search-user-results">
+                                                {searchUsers?.map((user) => (
+                                                    <div
+                                                        key={user._id}
+                                                        className="chat-usr-card"
+                                                        onClick={() => startChatWithUser(user)}
+                                                    >
+                                                        <div className="chat-usr-info">
+                                                            <h5>{user.name}</h5>
+                                                            <small>{user.email}</small>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {chatList?.map((chat) => (
+                                            <a href="#" key={chat._id}>
+                                                <div
+                                                    className="chat-usr-card nw-chat-usr-card"
+                                                    onClick={() => openChat(chat)}
+                                                >
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        <div className="chat-usr-avatr-crd">
+                                                            <div className="chat-usr-avatr-bx">
+                                                                <img src="/profile.png" alt="" />
+                                                            </div>
+                                                            <div className="chat-usr-info">
+                                                                <h5>{chat.participants[0]?.name}</h5>
+                                                                <p>{chat.lastMessage}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        {chat.unreadCount > 0 && (
+                                                            <div className="chat-count-bx me-lg-3">
+                                                                <span className="chat-count-title">
+                                                                    {chat.unreadCount}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-lg-9 mb-3">
+                                <div className="right-chat-card chat-tp-header">
+                                    <div className="lab-tp-title patient-bio-tab  d-flex align-items-center justify-content-between py-2">
+                                        <div className="">
+                                            <div className="d-flex align-items-center justify-content-between">
+                                                <div className="chat-usr-avatr-crd">
+                                                    <div className="chat-usr-avatr-bx nw-chat-add-live">
+                                                        <img src="/chat-logo.jpg" alt="" />
+                                                    </div>
+                                                    <div className="chat-usr-info">
+                                                        <h5 className="mb-0">{selectedChat?.participants[0]?.name || "Select Chat"}</h5>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div className="add-nw-bx d-flex gap-4">
+                                            <button onClick={() => startCall("voice")} className="text-black calling-btn">
+                                                <FontAwesomeIcon icon={faPhone} style={{ color: "#FEB052" }} />
+                                            </button>
+                                            <button onClick={() => startCall("video")} className="text-black calling-btn">
+                                                <FontAwesomeIcon icon={faVideo} style={{ color: "#FEB052" }} />
+                                            </button>
+                                        </div>
+
+                                    </div>
+
+                                    <div className="all-chating-content-bx">
+                                        <div className="chat-container">
+                                            {messages?.map((msg, i) => {
+                                                const isMe = msg.sender._id === myUserId;
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`d-flex align-items-start mb-4 ${isMe ? "justify-content-end" : ""
+                                                            }`}
+                                                    >
+                                                        <div>
+                                                            <div
+                                                                className={`chat-bubble ${isMe ? "nw-right" : "nw-left"
+                                                                    }`}
+                                                            >
+                                                                {msg.message && (
+                                                                    <p className={isMe && "text-white"}>{msg.message}</p>
+                                                                )}
+                                                                {msg.file && (
+                                                                    msg.file.type?.startsWith("audio/") ? (
+                                                                        <audio
+                                                                            controls
+                                                                            src={`${SERVER_BASE_URL}${msg.file.url}`}
+                                                                            style={{ width: "240px" }}
+                                                                        />
+                                                                    ) : (
+                                                                        <img
+                                                                            src={`${SERVER_BASE_URL}${msg.file.url}`}
+                                                                            alt={msg.file.name}
+                                                                            style={{
+                                                                                maxWidth: "220px",
+                                                                                borderRadius: "8px",
+                                                                                cursor: "pointer",
+                                                                            }}
+                                                                            onClick={() =>
+                                                                                window.open(
+                                                                                    `${SERVER_BASE_URL}${msg.file.url}`,
+                                                                                    "_blank"
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {typingUser && <p className="typing-text">Typing...</p>}
+                                            <div ref={bottomRef} />
+                                        </div>
+                                        <div className="">
+                                            {recording && (
+                                                <div className="recording-indicator mb-2">
+                                                    <span className="text-danger fw-bold">
+                                                        🔴 Recording… {recordSeconds}s
+                                                    </span>
+                                                    <small className="d-block text-muted">
+                                                        Tap mic to stop
+                                                    </small>
+                                                </div>
+                                            )}
+
+                                            {recordedAudio && (
+                                                <div className="audio-preview mb-2">
+                                                    <small className="text-success d-block mb-1">
+                                                        🎧 Audio ready to send
+                                                    </small>
+
+                                                    <AudioWaveform audioBlob={recordedAudio} />
+
                                                     <button
                                                         className="btn btn-sm btn-outline-danger mt-1"
-                                                        onClick={() => {
-                                                            setPreviewFile(null);
-                                                            setPreviewUrl(null);
-                                                        }}
+                                                        onClick={() => setRecordedAudio(null)}
                                                     >
-                                                        ❌ Remove
+                                                        ❌ Cancel Audio
                                                     </button>
                                                 </div>
                                             )}
-                                            <input
-                                                type="file"
-                                                hidden
-                                                ref={fileInputRef}
-                                                onChange={handleFileSelect}
-                                            />
 
-                                            <div className="chat-papper-plane-bx">
-                                                <button onClick={sendMessage} className="chat-papper-plane-btn"><FontAwesomeIcon icon={faPaperPlane} className="paper-plane-icon" /></button>
+                                            <div className="custom-frm-bx mb-0">
+                                                <input
+                                                    type="text"
+                                                    className="form-control px-5"
+                                                    value={message}
+                                                    onChange={(e) => setMessage(e.target.value)}
+                                                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                                                />
+
+                                                <div className="chat-papperclip-bx">
+                                                    {/* 📎 FILE */}
+                                                    <button
+                                                        type="button"
+                                                        className="papperclip-btn"
+                                                        onClick={() => fileInputRef.current.click()}
+                                                    >
+                                                        <FontAwesomeIcon icon={faPaperclip} />
+                                                    </button>
+
+                                                    {/* 🎤 MIC */}
+                                                    <button
+                                                        type="button"
+                                                        className={`mic-btn ${recording ? "recording" : ""}`}
+                                                        onClick={toggleRecording}
+                                                    >
+                                                        {recording ? "⏹️" : "🎤"}
+                                                    </button>
+                                                </div>
+                                                {previewUrl && (
+                                                    <div className="image-preview mb-2">
+                                                        <img
+                                                            src={previewUrl}
+                                                            alt="preview"
+                                                            style={{
+                                                                maxWidth: "200px",
+                                                                borderRadius: "8px",
+                                                                display: "block",
+                                                                marginBottom: "5px",
+                                                            }}
+                                                        />
+                                                        <small className="text-muted">🖼 Image ready to send</small>
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger mt-1"
+                                                            onClick={() => {
+                                                                setPreviewFile(null);
+                                                                setPreviewUrl(null);
+                                                            }}
+                                                        >
+                                                            ❌ Remove
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    hidden
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileSelect}
+                                                />
+
+                                                <div className="chat-papper-plane-bx">
+                                                    <button onClick={sendMessage} className="chat-papper-plane-btn"><FontAwesomeIcon icon={faPaperPlane} className="paper-plane-icon" /></button>
+                                                </div>
+
+
                                             </div>
-
-
                                         </div>
                                     </div>
-                                </div>
 
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>}
         </>
     )
 }

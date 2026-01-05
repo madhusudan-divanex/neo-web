@@ -2,6 +2,7 @@ import React from "react";
 import "../../assets/css/PharmacyLogin.css";
 import logo from "../../assets/img/logo.png";
 import { FaUser, FaMapMarkerAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -41,9 +42,9 @@ const Header = () => {
             </li>
 
             <li className="nav-item">
-              <a className="nav-link" href="#">
+              <Link className="nav-link" to={'/find-hospital'}>
                 Hospitals
-              </a>
+              </Link>
             </li>
 
             <li className="nav-item">

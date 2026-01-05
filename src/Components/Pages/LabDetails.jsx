@@ -148,7 +148,7 @@ function LabDetails() {
                                                 <div>
                                                     <h4 className="innr-title fz-700">{labData?.name}</h4>
                                                     <div className="my-3">
-                                                        <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {avgRating} </span>
+                                                        <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {avgRating?.toFixed(0)} </span>
                                                     </div>
                                                     <p><FontAwesomeIcon icon={faLocationDot} /> {labAddress?.fullAddress}</p>
                                                 </div>

@@ -1,9 +1,49 @@
 import { faHome, faLocationDot, faRoute, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { toast } from "react-toastify"
+import { getApiData, getSecureApiData, securePostData } from "../../Services/api"
+import { useEffect, useState } from "react"
+import base_url from "../../baseUrl"
 
 function FindHospital() {
-  return (
-     <>
+    const [favIds, setFavIds] = useState([])
+    const [hospitals, setHospitals] = useState([])
+    const userId = localStorage.getItem('userId')
+    async function fetchHospitals() {
+        const result = await getApiData(`api/hospital`)
+        if (result.success) {
+            setHospitals(result.data)
+        }
+    }
+    useEffect(() => {
+        fetchHospitals()
+    }, [])
+    async function fetchFavData() {
+        const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
+        if (result.success) {
+            setFavIds(result.data)
+        }
+    }
+
+    useEffect(() => {
+        fetchFavData()
+    }, [userId])
+    const handleFavorite = async (id) => {
+        const data = { userId, labId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
+    return (
+        <>
             <section className="tp-breadcrum-section">
                 <div class="container">
                     <div class="row">
@@ -25,7 +65,7 @@ function FindHospital() {
                                             className="breadcrumb-item active"
                                             aria-current="page"
                                         >
-                                            Labs List
+                                            Hospitals List
                                         </li>
                                     </ol>
                                 </nav>
@@ -71,7 +111,7 @@ function FindHospital() {
                                                 data-bs-parent="#accordionExample"
                                             >
                                                 <div className="accordion-body">
-                                                     <ul className="permision-check-list">
+                                                    <ul className="permision-check-list">
                                                         <li>
                                                             <div className="accordion-body-concet">
                                                                 <input className="form-check-input mt-0" type="checkbox" id="available" value="" aria-label="Checkbox for following text input" />
@@ -191,10 +231,39 @@ function FindHospital() {
                             </div>
 
                             <div className="show-result-bx">
-                                <p className="show-pra">Showing <span className="show-title">450</span> labs For You</p>
+                                <p className="show-pra">Showing <span className="show-title">450</span> hospitals For You</p>
                             </div>
 
                             <div className="row">
+                                {hospitals?.length > 0 &&
+                                    hospitals?.map((item, key) =>
+                                        <div className="col-lg-6 col-md-12 col-sm-12 mb-3" key={key}>
+                                            <div className="lab-technology-card">
+                                                <div className="doctor-mega-card">
+                                                    <div className="doctor-pic-bx">
+                                                        <img src={item?.hospitalId?.logoFileId ?
+                                                            `${base_url}/${item?.hospitalId?.logoFileId}` : "/hospital-pic.jpg"} alt="" />
+                                                    </div>
+                                                    <div className="doctor-details  flex-grow-1">
+                                                        <h4 className="innr-title fz-700">{item?.name}</h4>
+                                                        <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                        <div className="my-3 d-flex align-items-center justify-content-between">
+                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                            <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
+                                                        </div>
+
+                                                        <div className="d-flex align-items-center justify-content-between">
+                                                            <div>
+                                                                <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
+                                                            </div>
+                                                            <div>
+                                                                <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>)}
                                 <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
                                     <div className="lab-technology-card">
                                         <div className="doctor-mega-card">
@@ -206,11 +275,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -232,11 +301,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -258,11 +327,10 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
-
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -284,11 +352,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -310,11 +378,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -336,11 +404,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -362,11 +430,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -388,11 +456,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
+                                                    <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -403,6 +471,7 @@ function FindHospital() {
                                         </div>
                                     </div>
                                 </div>
+
                                 <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
                                     <div className="lab-technology-card">
                                         <div className="doctor-mega-card">
@@ -414,38 +483,11 @@ function FindHospital() {
                                                 <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                                                 <div className="my-3 d-flex align-items-center justify-content-between">
                                                     <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
+                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                 </div>
 
                                                 <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
                                                     <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute}/>2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                     <div>
                                                         <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
                                                     </div>
                                                     <div>
@@ -457,7 +499,7 @@ function FindHospital() {
                                     </div>
                                 </div>
 
-                            
+
 
                             </div>
 
@@ -473,7 +515,7 @@ function FindHospital() {
             </section>
 
         </>
-  )
+    )
 }
 
 export default FindHospital
