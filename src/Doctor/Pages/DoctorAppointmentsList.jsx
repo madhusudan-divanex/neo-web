@@ -233,25 +233,19 @@ function DoctorAppointmentsList() {
                                                                                     </div>
                                                                                 </div>
                                                                             </td>
-
                                                                             <td>{formatDateTime(item?.date)}</td>
                                                                             <td>
-
                                                                                 {item?.status == "pending" && <span className="pending-data">Pending </span>}
-                                                                                {item?.status == "cancel" && 
+                                                                                {item?.status == "cancel" &&
                                                                                     <span className="danger-title">Cancel appointment</span>
                                                                                 }
-                                                                                {item?.status == "rejected" && 
+                                                                                {item?.status == "rejected" &&
                                                                                     <span className="danger-title">Rejected appointment</span>
                                                                                 }
                                                                                 {item?.status == 'completed' && <span className="complete-data">Completed </span>}
-                                                                                {(item?.status !== 'completed' && item?.status !== "rejected" && item?.status !== "cancel" && item?.status !== "pending") 
-                                                                                && <span className="complete-data text-capitalize">{item?.status} </span>}
+                                                                                {(item?.status !== 'completed' && item?.status !== "rejected" && item?.status !== "cancel" && item?.status !== "pending")
+                                                                                    && <span className="complete-data text-capitalize">{item?.status} </span>}
                                                                             </td>
-                                                                            {/* <td>
-                                                                        <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
-                                                                </td> */}
-
                                                                             <td>
                                                                                 <div className="d-flex align-items-centet gap-2">
                                                                                     <div className="dropdown">
@@ -269,7 +263,7 @@ function DoctorAppointmentsList() {
                                                                                             aria-labelledby="acticonMenu1"
                                                                                         >
                                                                                             <li className="prescription-item">
-                                                                                                <NavLink to="#" className="prescription-nav" href="#" >
+                                                                                                <NavLink to={`/doctor/detail-view/${item?.patientId?.name}/${item?._id}`} className="prescription-nav" href="#" >
                                                                                                     View Details
                                                                                                 </NavLink>
                                                                                             </li>
@@ -284,20 +278,17 @@ function DoctorAppointmentsList() {
                                                                                                 </NavLink>
                                                                                             </li>
                                                                                             <li className="prescription-item">
-                                                                                                <button className="prescription-nav " onClick={()=>appointmentAction(item?._id,'completed')} >
+                                                                                                <button className="prescription-nav" onClick={() => appointmentAction(item?._id, 'completed')} >
                                                                                                     <span className="accept-title "><FontAwesomeIcon icon={faCheck} />  Mark as in Complete</span>
                                                                                                 </button>
                                                                                             </li>
-
                                                                                             <li className="prescription-item">
-                                                                                                <button className=" prescription-nav" onClick={()=>appointmentAction(item?._id,'rejected')} >
-
+                                                                                                <button className="prescription-nav" onClick={() => appointmentAction(item?._id, 'rejected')} >
                                                                                                     <span className="danger-title">Cancel appointment</span>
                                                                                                 </button>
                                                                                             </li>
                                                                                         </ul>
                                                                                     </div>
-
                                                                                 </div>
                                                                             </td>
                                                                         </tr>) : (

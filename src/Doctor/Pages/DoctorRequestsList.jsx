@@ -271,7 +271,7 @@ function DoctorRequestsList() {
                                                                                             aria-labelledby="acticonMenu1"
                                                                                         >
                                                                                             <li className="prescription-item">
-                                                                                                <NavLink to="#" className="prescription-nav" href="#" >
+                                                                                                <NavLink to={`/doctor/detail-view/${item?.patientId?.name}/${item?._id}`} className="prescription-nav" >
                                                                                                     View Details
                                                                                                 </NavLink>
                                                                                             </li>

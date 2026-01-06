@@ -9,7 +9,7 @@ import { Link } from "react-router-dom"
 function Favorite() {
     const userId = localStorage.getItem('userId')
     const [favIds, setFavIds] = useState([])
-    const [activeTab,setActiveTab]=useState('')
+    const [activeTab,setActiveTab]=useState('doctor')
     const [counts,setCounts]=useState()
     async function fetchFavData() {
         const result = await getSecureApiData(`patient/favorite-data/${userId}?limit=1000000&type=${activeTab}`)
@@ -117,151 +117,32 @@ function Favorite() {
 
                                                         <div className="all-profile-data-bx">
                                                             <div className="row">
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
+                                                                {favIds?.length>0 && 
+                                                                favIds?.map((item,key)=>
+                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3" key={key}>
                                                                     <div className="favorite-docotr-card">
                                                                         <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
+                                                                            <img src={item?.doctorProfile?.profileImage? `${base_url}/${item?.doctorProfile?.profileImage}`
+                                                                            :"/date-time-img.png"} alt="" />
                                                                             <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
+                                                                                <h4 className="">Dr.{item?.doctor?.name}</h4>
                                                                                 <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating}</span>
                                                                                 </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
+                                                                                <h6 className="nw-hospital-title">{item?.doctorAbout?.specialty} <span className="slash-title" >|</span> {item?.doctorAbout?.hospitalName}</h6>
                                                                                 <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
+                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAbout?.city}, {item?.doctorAbout?.state}</p>
+                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ {item?.doctorAbout?.fees}</h5>
                                                                                 <div className="d-flex justify-content-between mt-3">
                                                                                     <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
+                                                                                    <Link to={`/book-doctor-appointment/${item?.doctor?.name}/${item?.doctor?._id}`} className="nw-thm-btn">Book Appointment</Link>
                                                                                 </div>
-
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="favorite-docotr-card">
-                                                                        <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
-                                                                            <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
-                                                                                <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
-                                                                                <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="favorite-docotr-card">
-                                                                        <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
-                                                                            <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
-                                                                                <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
-                                                                                <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="favorite-docotr-card">
-                                                                        <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
-                                                                            <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
-                                                                                <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
-                                                                                <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="favorite-docotr-card">
-                                                                        <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
-                                                                            <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
-                                                                                <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
-                                                                                <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="col-lg-4 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="favorite-docotr-card">
-                                                                        <div className="favorite-doctor-picture text-center">
-                                                                            <img src="/date-time-img.png" alt="" />
-                                                                            <div className="favorite-doctor-details">
-                                                                                <h4 className="">Dr.James Harris</h4>
-                                                                                <div className="my-2">
-                                                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                </div>
-                                                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                                                <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                                                <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ 22.00</h5>
-
-                                                                                <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
+                                                                </div>)}
                                                             </div>
                                                         </div>
-
-
-
                                                     </div>
 
                                                     <div className="tab-pane fade" id="profile" role="tabpanel">
@@ -379,7 +260,6 @@ function Favorite() {
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                     <div className="tab-pane fade" id="contact" role="tabpanel">
                                                         <div className="all-profile-data-bx">
                                                             <div className="row">
@@ -389,34 +269,29 @@ function Favorite() {
                                                                             <div className="lab-technology-card">
                                                                                 <div className="doctor-mega-card">
                                                                                     <div className="doctor-pic-bx">
-                                                                                        <img src={item?.labId?.labId?.logo ?
-                                                                                            `${base_url}/${item?.labId?.labId?.logo}` : "/lab-pic.png"} alt="" />
+                                                                                        <img src={item?.labProfile?.logo ?
+                                                                                            `${base_url}/${item?.labProfile?.logo}` : "/lab-pic.png"} alt="" />
                                                                                     </div>
                                                                                     <div className="doctor-details  flex-grow-1">
-                                                                                        <h4 className="innr-title fz-700">{item?.labId?.labId?.name}</h4>
-                                                                                        <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                                                        <h4 className="innr-title fz-700">{item?.lab?.name}</h4>
+                                                                                        <p><FontAwesomeIcon icon={faLocationDot} /> {item?.labAbout?.city}, {item?.labAbout?.state}</p>
                                                                                         <div className="my-3">
-                                                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-
+                                                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> {item?.avgRating} </span>
                                                                                         </div>
-
                                                                                         <div className="  d-flex align-items-center justify-content-between">
                                                                                             <div>
                                                                                                 <button type="button" onClick={()=>handleFavorite(item?.labId._id)} className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></button>
                                                                                             </div>
                                                                                             <div>
-                                                                                                <Link to={`/lab-detail/${item?.labId?.labId?.name}/${item?.labId?._id}`} className="nw-thm-btn">View Details</Link>
+                                                                                                <Link to={`/lab-detail/${item?.lab?.name}/${item?.lab?._id}`} className="nw-thm-btn">View Details</Link>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>)}
-                                                                
+                                                                        </div>)}                                                                
                                                             </div>
                                                         </div>
-
-
 
                                                     </div>
 

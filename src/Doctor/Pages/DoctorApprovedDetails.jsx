@@ -14,7 +14,6 @@ function DoctorApprovedDetails() {
                         <div className="col-lg-3  col-sm-12 mb-3">
                             <ProfileSidebar />
                         </div>
-
                         <div className="col-lg-9 col-sm-12">
                             <div className="profile-right-card">
                                 <div className="profile-tp-header">
@@ -39,8 +38,6 @@ function DoctorApprovedDetails() {
                                                             <p>ID: SUNIL33209490</p>
                                                         </div>
                                                     </div>
-
-
                                                 </div>
                                             </div>
                                             <div className="new-item-list p-0 mt-0">
@@ -57,29 +54,23 @@ function DoctorApprovedDetails() {
                                                             <li className="patient-bio-item"><FontAwesomeIcon icon={faDroplet} /> Blood Group :<span className="patient-bio-title"> B+</span> </li>
                                                         </ul>
                                                         <div>
-
                                                         </div>
                                                     </div>
                                                 </fieldset>
-
                                                 <fieldset class="address-fieldset mb-4">
                                                     <legend class="float-none w-auto px-3 field-title">
                                                         Medical History
                                                     </legend>
-
                                                     <div className="medical-history-content">
                                                         <div>
                                                             <h4 className="fz-16 fw-700">Do you have any chronic conditions?</h4>
                                                             <h5 className="hearth-disese">Heart Disease</h5>
                                                         </div>
-
                                                         <div className="mt-3">
                                                             <h4 className="fz-16 fw-700">Are you currently on any medications?</h4>
                                                             <h5 className="hearth-disese">Yes</h5>
                                                         </div>
-
                                                     </div>
-
                                                     <div className="medical-history-content my-3">
                                                         <div>
                                                             <h4 className="fz-16 fw-700">Medication Details</h4>

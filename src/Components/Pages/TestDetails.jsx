@@ -23,7 +23,6 @@ function TestDetails() {
   const [labImage, setLabImage] = useState()
   const [avgRating, setAvgRating] = useState(0)
   const [ratings, setRatings] = useState([])
-  const [favIds, setFavIds] = useState([])
   const [labTest, setLabTest] = useState([])
   const preTest = JSON.parse(sessionStorage.getItem('preTest')) || [];
   const [selectedTest, setSelectedTest] = useState(preTest);
@@ -85,6 +84,10 @@ function TestDetails() {
 
   const handleBook = async (e) => {
     e.preventDefault();
+    if (!userId) {
+      navigate('/login')
+      return;
+    }
 
     if (!selectedTest || selectedTest.length === 0) {
       toast.error("Please select at least one test");
@@ -179,16 +182,13 @@ function TestDetails() {
                         {dates[activeIndex].day}, {dates[activeIndex].date}
                       </span>
                     </li>
-
                     <li className="pending-item"> Appointment Time  <span className="pending-title">{timeIndex}</span></li>
                     <li className="pending-item">Lab <span className="pending-title">{labData?.name}</span></li>
                   </ul>
                 </div>
-
                 <div className=" mt-4 text-center">
                   <Link to="/my-appointment" className="nw-thm-btn">My Appointment</Link>
                 </div>
-
               </div>
             </div>
           </div>

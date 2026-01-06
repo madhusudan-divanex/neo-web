@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { getApiData, getSecureApiData, securePostData } from "../../Services/api"
 import base_url from "../../baseUrl"
 import { Link } from "react-router-dom"
+import { toast } from "react-toastify"
 
 function FindLabs() {
     const [favIds, setFavIds] = useState([])
@@ -19,6 +20,9 @@ function FindLabs() {
         fetchLabs()
     }, [])
     async function fetchFavData() {
+        if(!userId){
+            return
+        }
         const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
         if (result.success) {
             setFavIds(result.data)

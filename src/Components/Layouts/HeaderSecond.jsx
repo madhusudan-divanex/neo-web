@@ -55,7 +55,6 @@ function HeaderSecond() {
         if (role === 'doctor') return state.doctor.profiles;
         return null;
     });
-    console.log(profiles)
     return (
         <>
             <nav className="navbar navbar-expand-lg navbar-light-box">

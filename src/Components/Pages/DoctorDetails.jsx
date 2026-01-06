@@ -41,6 +41,9 @@ function DoctorDetails() {
     }
   }
   async function fetchFavData() {
+    if(!userId){
+      return
+    }
     const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
     if (result.success) {
       setFavIds(result.data)

@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProfileSidebar from "./ProfileSidebar"
-import { faArrowLeft, faCalendar, faCircleXmark, faEye, faLocationDot, faMessage, faPhone, faVideo, } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faCalendar, faCircleXmark, faDownload, faEye, faLocationDot, faMessage, faPhone, faPrint, faVideo, } from "@fortawesome/free-solid-svg-icons"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getSecureApiData, securePostData } from "../../Services/api"
 import { useSelector } from "react-redux"
 import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +11,9 @@ import { toast } from "react-toastify"
 import { Modal } from "bootstrap/dist/js/bootstrap.bundle.min"
 import base_url from "../../baseUrl"
 import { formatDateTime } from "../../Services/globalFunction"
+import html2canvas from "html2canvas"
+import html2pdf from "html2pdf.js"
+import { BsCapsule } from "react-icons/bs"
 
 function AppointmentDetailsCompleted() {
     const navigate = useNavigate()
@@ -21,10 +24,14 @@ function AppointmentDetailsCompleted() {
     const [appointmentData, setAppointmentData] = useState()
     const [cancelMessage, setCancelMessage] = useState('')
     const [doctorAddress, setDoctorAddress] = useState()
+    const [pastPresData, setPastPresData] = useState()
     const [star, setStar] = useState(4)
     const [message, setMessage] = useState('')
     const [myRating, setMyRating] = useState([])
     const [doctorReports, setDoctorReports] = useState([])
+    const [labData, setLabData] = useState()
+    const [labAddress, setLabAddress] = useState()
+    const [testData, setTestData] = useState([])
     const { profiles } = useSelector(state => state.patient)
     async function fetchAppointmentData() {
         setLoading(true)
@@ -52,6 +59,23 @@ function AppointmentDetailsCompleted() {
             setLoading(false)
         }
     }
+    async function fetchLabData() {
+        if (!appointmentData?.labTest) {
+            return
+        }
+        try {
+            const result = await getSecureApiData(`patient/appointment-test-detail/${params.id}`)
+            if (result.success) {
+                setLabData(result.labData)
+                setLabAddress(result.labAddress)
+                setTestData(result.labTests)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
     async function cancelAppointment() {
         if (cancelMessage?.length < 30) {
             toast.error("Please write a valid reason with 30 length")
@@ -64,7 +88,7 @@ function AppointmentDetailsCompleted() {
             if (result.success) {
                 fetchAppointmentData()
                 toast.success("Appointment cancel")
-                const modalEl = document.getElementById("prescription-Modal");
+                const modalEl = document.getElementById("cancel-Modal");
                 const modalInstance = Modal.getInstance(modalEl);
 
                 if (modalInstance) {
@@ -108,6 +132,11 @@ function AppointmentDetailsCompleted() {
         fetchAppointmentData()
     }, [params])
     useEffect(() => {
+        if (appointmentData) {
+            fetchLabData()
+        }
+    }, [appointmentData])
+    useEffect(() => {
         if (userId) {
             fetchRatingData()
         }
@@ -141,7 +170,26 @@ function AppointmentDetailsCompleted() {
             setLoading(false)
         }
     }
+    const prescriptionRef = useRef()
+    const handleDownload = async () => {
+        const element = prescriptionRef.current;
+        document.body.classList.add("hide-buttons");
+        const opt = {
+            margin: [0.2, 0.2, 0.2, 0.2],
+            filename: "prescriptions.pdf",
+            image: { type: "jpeg", quality: 1 },
+            html2canvas: { scale: 3, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        };
+        try {
 
+            await html2pdf().from(element).set(opt).save().then(() => { document.body.classList.remove("hide-buttons"); });
+        } catch (error) {
+
+        }
+
+    };
+    console.log(pastPresData)
     return (
         <>
             <section className="new-profile-section">
@@ -255,23 +303,21 @@ function AppointmentDetailsCompleted() {
                                                 <div className="appointment-listing-bx">
                                                     <div className="prescriptin-bx">
                                                         <div className="prescriptin-content">
-
                                                             <div className="prescriptin-picture">
                                                                 <img src="/prescriptin-pic.png" alt="" />
                                                                 <div>
                                                                     <p>Prescription Date</p>
-                                                                    <h6>8/21/2025</h6>
+                                                                    <h6>{new Date(appointmentData?.prescriptionId?.createdAt)?.toLocaleString()}</h6>
                                                                 </div>
                                                             </div>
-
                                                             <div>
-                                                                <button className="thm-outline-btn thm-btn"> <FontAwesomeIcon icon={faEye} /> View </button>
+                                                                <button onClick={() => setPastPresData(appointmentData?.prescriptionId)}
+                                                                    data-bs-toggle="modal" data-bs-target="#prescription-Modal"
+                                                                    className="thm-outline-btn thm-btn"> <FontAwesomeIcon icon={faEye} /> View </button>
                                                             </div>
                                                         </div>
-
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>}
 
@@ -282,34 +328,29 @@ function AppointmentDetailsCompleted() {
                                                 </div>
                                                 <div className="appointment-listing-bx">
                                                     <div className="nw-presc-doctor-bx">
-                                                        <img src="/lab-pic.png" alt="" />
+                                                        <img src={labData?.labImg? `${base_url}/${labData?.labImg}`
+                                                        :"/lab-pic.png"} alt="" />
                                                         <div className="appointment-info-details">
-                                                            <h4 className="">Advance Doctor Tech</h4>
-                                                            <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                            <h4 className="">{labData?.name}</h4>
+                                                            <p className=""><FontAwesomeIcon icon={faLocationDot} />{labAddress?.fullAddress}</p>
                                                         </div>
                                                     </div>
-
                                                     <div className="my-3">
                                                         <ul className="permision-check-list">
-                                                            <li className="permission-item">
+                                                            {testData?.map((item,key)=>
+                                                            <li className="permission-item" key={key}>
                                                                 <div className="accordion-body-concet nw-select-test-bx">
                                                                     <input className="form-check-input mt-0" type="checkbox" id="avaidoctorle" checked />
-                                                                    <doctorel htmlFor="avaidoctorle">CBC</doctorel>
-                                                                    <span class="price">$25.00</span>
+                                                                    <doctorel htmlFor="avaidoctorle">{item?.shortName}</doctorel>
+                                                                    <span class="price">${item?.price}</span>
                                                                 </div>
-                                                            </li>
+                                                            </li>)}
                                                         </ul>
-
-
                                                     </div>
-
                                                     <div className="text-center">
                                                         <button className="thm-btn">Book Appointment</button>
                                                     </div>
-
-
                                                 </div>
-
                                             </div>
                                         </div>}
                                         {appointmentData?.status == 'cancel' && <div className="col-lg-12">
@@ -321,33 +362,27 @@ function AppointmentDetailsCompleted() {
                                                     <h6 className="appoint-cancel fw-700">Cancel Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
                                                     <p>{appointmentData?.cancelMessage}</p>
                                                 </div>
-
                                             </div>
                                         </div>}
                                         {appointmentData?.status == 'rejected' && <div className="col-lg-12">
                                             <div className="lab-report-tp-bx">
                                                 <div className="appointment-listing-bx pb-5">
                                                     <h6 className="appoint-cancel fw-700">Reject Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
-
                                                 </div>
-
                                             </div>
                                         </div>}
                                         {appointmentData?.status == 'pending' && <div className="text-end">
-                                            <button className="nw-danger-outline-btn me-3" data-bs-toggle="modal" data-bs-target="#prescription-Modal">Cancel</button>
+                                            <button className="nw-danger-outline-btn me-3" data-bs-toggle="modal" data-bs-target="#cancel-Modal">Cancel</button>
                                             <button className="nw-thm-btn">Reschedule</button>
                                         </div>}
-
                                         {appointmentData?.status == 'completed' &&
-                                            <div className=" mt-3 text-end d-flex align-items-center justify-content-end gap-2">
+                                            <div className="mt-3 text-end d-flex align-items-center justify-content-end gap-2">
                                                 {!myRating.find(r => r?.doctorId == appointmentData?.doctorId?._id) && <button className="nw-warning-outline-btn" data-bs-toggle="modal" data-bs-target="#rating-Modal">Add Rating</button>}
                                                 <Link to={`/book-doctor-appointment/${appointmentData?.doctorId?.name}/${appointmentData?.doctorId?._id}`} className="nw-thm-btn">Re -Appointment </Link>
                                             </div>
                                         }
-
                                     </div>
                                 </div>
-
                             </div>
                         </div>
 
@@ -355,7 +390,7 @@ function AppointmentDetailsCompleted() {
                 </div>
 
             </section>
-            <div className="modal step-modal" id="prescription-Modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            <div className="modal step-modal" id="cancel-Modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div className="modal-dialog modal-dialog-centered modal-md">
                     <div className="modal-content rounded-0 ">
@@ -447,6 +482,85 @@ function AppointmentDetailsCompleted() {
                     </div>
                 </div>
             </div>
+            {pastPresData &&
+                <div className="modal fade step-modal" id="prescription-Modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                        <div className="modal-content rounded-5" >
+                            <div className="d-flex align-items-center justify-content-between border-bottom p-4">
+                                <div>
+                                    <h6 className="heading-grad mb-0 fz-24"> Prescription</h6>
+                                </div>
+                                <div>
+                                    <button type="button" onClick={() => setPastPresData(null)} className="" data-bs-dismiss="modal" aria-label="Close" style={{ color: "#00000040" }}>
+                                        <FontAwesomeIcon icon={faCircleXmark} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="modal-body p-4" ref={prescriptionRef}>
+                                <div className="row">
+                                    <div className="col-lg-12">
+                                        <div className="view-report-card">
+                                            <div className="view-report-header">
+                                                <div className="d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <span className="active-barcode">{pastPresData?.status}</span>
+                                                        <h5>{pastPresData?.customId}</h5>
+                                                        <h6>Date: {new Date(pastPresData?.createdAt).toLocaleDateString("en-GB", {
+                                                            day: "2-digit",
+                                                            month: "long",
+                                                            year: "numeric",
+                                                        })
+                                                        } </h6>
+                                                    </div>
+
+                                                    <div className="d-flex gap-2">
+                                                        <button className="fz-18 no-print" onClick={handleDownload}><FontAwesomeIcon icon={faDownload} /> </button>
+                                                        <button className="fz-18 no-print"><FontAwesomeIcon icon={faPrint} /> </button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div className="view-report-content">
+                                                <div className="sub-content-title">
+                                                    <h4>RX.</h4>
+                                                    <h3><BsCapsule style={{ color: "#00B4B5" }} /> Medications</h3>
+                                                </div>
+
+                                                {pastPresData?.medications?.map((item, key) =>
+                                                    <div className="view-medications-bx mb-3" key={key}>
+                                                        <h5>{key + 1}. {item?.name}</h5>
+                                                        <ul className="viwe-medication-list">
+                                                            <li className="viwe-medication-item">Frequency: {item?.frequency} </li>
+                                                            <li className="viwe-medication-item">Duration: {item?.duration}</li>
+                                                            <li className="viwe-medication-item">Instructions: {item?.instructions}</li>
+                                                            <li className="viwe-medication-item">Refills: {item?.refills} </li>
+
+                                                        </ul>
+                                                    </div>)}
+
+
+
+                                                <div className="diagnosis-bx mb-3">
+                                                    <h5>Diagnosis</h5>
+                                                    <p>{pastPresData?.diagnosis}</p>
+                                                </div>
+
+                                                {/* <div className="diagnosis-bx mb-3">
+                                                                <h5>Diagnosis</h5>
+                                                                <p>-</p>
+                                                            </div> */}
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>}
         </>
     )
 }

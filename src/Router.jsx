@@ -522,7 +522,7 @@ function Router() {
 
 
         {
-          path: "/doctor/add-prescriptions",
+          path: "/doctor/add-prescriptions/:id",
           element: <DoctorAddPrescriptions />,
         },
 
@@ -537,7 +537,7 @@ function Router() {
         },
 
         {
-          path: "/doctor/detail-view",
+          path: "/doctor/detail-view/:name/:id",
           element: <DoctorDetailsView />,
         },
         {

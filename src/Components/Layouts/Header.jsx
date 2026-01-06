@@ -191,15 +191,15 @@ const Header = () => {
               </li>
 
               <li className="nav-item">
-                <a className="nav-link" href="#" onClick={closeMenu}>
+                <Link className="nav-link" to='/new-doctor-details' onClick={closeMenu}>
                   Doctors
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">
-                <a className="nav-link" href="#" onClick={closeMenu}>
+                <Link className="nav-link" to={'/find-hospital'} onClick={closeMenu}>
                   Hospitals
-                </a>
+                </Link>
               </li>
 
               <li className="nav-item">

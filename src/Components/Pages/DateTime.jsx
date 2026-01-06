@@ -16,7 +16,7 @@ function DateTime() {
   const [isShow, setIsShow] = useState(false)
   const [isFull, setIsFull] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [isHide,setIsHide] = useState(true)
+  const [isHide, setIsHide] = useState(true)
   const [doctorCertificate, setDoctorCertificate] = useState([])
   const [doctorData, setDoctorData] = useState([])
   const [doctorAddress, setDoctorAddress] = useState()
@@ -117,11 +117,32 @@ function DateTime() {
     return true;
   });
 
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
+
+  const fetchOccupiedSlots = async (dateObj) => {
+    try {
+      const dateStr = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD
+      const res = await getApiData(`doctor/occupied-slots/${params.id}/${dateStr}`);
+      if (res.success) {
+        setOccupiedSlots(res.occupiedTimes);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Fetch occupied slots whenever the date changes
+  useEffect(() => {
+    if (selectedDateObj) {
+      fetchOccupiedSlots(selectedDateObj);
+    }
+  }, [activeIndex, params.id]);
+  const filteredTimes = availableTimes.filter(time => !occupiedSlots.includes(time));
 
   const handleBook = async (e) => {
     e.preventDefault();
 
-    
+
 
     if (!timeIndex) {
       toast.error("Please select a time");
@@ -130,6 +151,10 @@ function DateTime() {
 
     if (!dates[activeIndex]) {
       toast.error("Please select a date");
+      return;
+    }
+    if (!userId) {
+      navigate('/login')
       return;
     }
     setLoading(true)
@@ -182,7 +207,7 @@ function DateTime() {
 
   return (
     <>
-      {isHide?<section className="date-time-section">
+      {isHide ? <section className="date-time-section">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10">
@@ -253,8 +278,8 @@ function DateTime() {
                     <div className="col-lg-10">
                       <h5 className="innr-title mb-2">Select Time</h5>
                       <div class="row g-2 time-row">
-                        {availableTimes.length > 0 ? (
-                          availableTimes.map((time, index) => (
+                        {filteredTimes.length > 0 ? (
+                          filteredTimes.map((time, index) => (
                             <div className="col time-col" key={index}>
                               <div
                                 className={`time-card ${timeIndex === time ? 'active-time' : ''}`}
@@ -301,41 +326,41 @@ function DateTime() {
           </div>
         </div>
 
-      </section>:
-      <section className="pending-wrapper">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-6 col-md-6 col-sm-12">
+      </section> :
+        <section className="pending-wrapper">
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-lg-6 col-md-6 col-sm-12">
 
-              <div className="pending-icon-box mx-auto">
-                <img src="/approve-img.gif" alt="pending" className="pending-icon" />
+                <div className="pending-icon-box mx-auto">
+                  <img src="/approve-img.gif" alt="pending" className="pending-icon" />
+                </div>
+
+                <div className="text-center my-3">
+                  <h3 className="title">Pending approval</h3>
+                  <p className="new_para">
+                    Your consultation request has been sent to the expert.<br />
+                    You’ll be notified once it’s approved.
+                  </p>
+                </div>
+
+                <div className="pending-card ">
+                  <ul className="pending-list">
+                    <li className="pending-item">Appointment Date <span className="pending-title">{dates[activeIndex].day}, {dates[activeIndex].date}</span></li>
+                    <li className="pending-item"> Appointment Time  <span className="pending-title">{timeIndex}</span></li>
+                    <li className="pending-item">Doctor <span className="pending-title">Dr. {doctorData?.name} </span></li>
+                  </ul>
+                </div>
+
+                <div className=" mt-4 text-center">
+                  <Link to="/my-appointment" className="nw-thm-btn">My Appointment</Link>
+                </div>
+
               </div>
-
-              <div className="text-center my-3">
-                <h3 className="title">Pending approval</h3>
-                <p className="new_para">
-                  Your consultation request has been sent to the expert.<br />
-                  You’ll be notified once it’s approved.
-                </p>
-              </div>
-
-              <div className="pending-card ">
-                <ul className="pending-list">
-                  <li className="pending-item">Appointment Date <span className="pending-title">{dates[activeIndex].day}, {dates[activeIndex].date}</span></li>
-                  <li className="pending-item"> Appointment Time  <span className="pending-title">{timeIndex}</span></li>
-                  <li className="pending-item">Doctor <span className="pending-title">Dr. {doctorData?.name} </span></li>
-                </ul>
-              </div>
-
-              <div className=" mt-4 text-center">
-                <Link to="/my-appointment" className="nw-thm-btn">My Appointment</Link>
-              </div>
-
             </div>
           </div>
-        </div>
 
-      </section>}
+        </section>}
 
     </>
   )
