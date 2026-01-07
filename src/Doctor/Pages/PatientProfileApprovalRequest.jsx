@@ -3,11 +3,40 @@ import ProfileSidebar from "./ProfileSidebar"
 import { faCheck, faFilter, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { TbGridDots } from "react-icons/tb";
 import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getSecureApiData } from "../../Services/api";
+import { formatDateTime } from "../../Services/globalFunction";
+import base_url from "../../baseUrl";
+import Loader from "../../Loader/Loader";
 
 function PatientProfileApprovalRequest() {
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPage, setTotalPage] = useState(1)
+    const [users, setUsers] = useState([])
+    const [loading,setLoading] =useState(false)
+    const [name,setName]=useState()
+    async function fetchPendingRequest() {
+        setLoading(true)
+        try {
+            const result = await getSecureApiData(`doctor/patient?page=${currentPage}&name=${name}`)
+            if (result.success) {
+                setUsers(result.data)
+                setCurrentPage(result.pagination.currentPage)
+                setTotalPage(result.pagination.totalPages)
+            }
+        } catch (error) {
+
+        } finally{
+            setLoading(false)
+        }
+    }
+    useEffect(() => {
+        fetchPendingRequest()
+    }, [currentPage])
     return (
         <>
-            <section className="new-profile-section">
+            {loading?<Loader/>
+            :<section className="new-profile-section">
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-3  col-sm-12 mb-3">
@@ -26,19 +55,21 @@ function PatientProfileApprovalRequest() {
                                                 <div className="d-flex align-items-center gap-2 nw-box">
                                                     <div className="custom-frm-bx mb-0">
                                                         <input
-                                                            type="email"
+                                                            type="text"
+                                                            value={name}
+                                                            onChange={(e)=>setName(e.target.value)}
                                                             className="form-control admin-table-search-frm  pe-5"
                                                             id="email"
                                                             placeholder="Search"
                                                             required
                                                         />
                                                         <div className="adm-search-bx">
-                                                            <button className="tp-search-btn text-secondary">
+                                                            <button onClick={()=>fetchPendingRequest()} className="tp-search-btn text-secondary">
                                                                 <FontAwesomeIcon icon={faSearch} />
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <div className="dropdown">
+                                                    {/* <div className="dropdown">
                                                         <a href="#" className="nw-filtr-btn" id="acticonMenus" data-bs-toggle="dropdown"
                                                             aria-expanded="false">
                                                             <FontAwesomeIcon icon={faFilter} />
@@ -102,20 +133,22 @@ function PatientProfileApprovalRequest() {
                                                             </div>
 
                                                         </div>
-                                                    </div>
+                                                    </div> */}
 
                                                 </div>
                                             </div>
 
-                                            <div className="page-selector">
+                                            {totalPage > 1 && <div className="page-selector">
                                                 <div className="filters">
-                                                    <select className="form-select custom-page-dropdown nw-custom-page ">
-                                                        <option value="1" selected>100</option>
-                                                        <option value="2">1</option>
-                                                        <option value="3">2</option>
+                                                    <select className="form-select custom-page-dropdown nw-custom-page "
+                                                        value={currentPage}
+                                                        onChange={(e) => setCurrentPage(e.target.value)}>
+                                                        {Array.from({ length: totalPages }, (_, i) => (
+                                                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                                        ))}
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div>}
                                         </div>
                                     </div>
 
@@ -127,395 +160,95 @@ function PatientProfileApprovalRequest() {
                                                         <thead>
                                                             <tr>
                                                                 <th>#</th>
-                                                                <th>Appointment  Id</th>
+                                                                <th>Id</th>
                                                                 <th>Patient Details</th>
-                                                                <th>Appointment  Date</th>
-                                                                <th>Status</th>
+                                                                <th>Create Date</th>
+                                                                {/* <th>Status</th> */}
                                                                 <th>Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
 
-                                                            <tr>
-                                                                <td>01.</td>
+                                                            {users?.length > 0 ?
+                                                                users?.map((item, key) =>
+                                                                    <tr key={key}>
+                                                                        <td>{key + 1}.</td>
 
-                                                                <td> #89324879</td>
+                                                                        <td> #{item?.userId?.unique_id}</td>
 
-                                                                <td>
-                                                                    <div className="admin-table-bx">
-                                                                        <div className="admin-table-sub-details d-flex align-items-center gap-2">
-                                                                            <img src="/patient-pic.png" alt="" />
-                                                                            <div>
-                                                                                <h6 className="">Annette Black</h6>
-                                                                                <p>PA-9001</p>
+                                                                        <td>
+                                                                            <div className="admin-table-bx">
+                                                                                <div className="admin-table-sub-details d-flex align-items-center gap-2">
+                                                                                    <img src={item?.profileImage ? `${base_url}/${item?.profileImage}`
+                                                                                        : "/patient-pic.png"} alt="" />
+                                                                                    <div>
+                                                                                        <h6 className="">{item?.name}</h6>
+                                                                                        <p>{item?.userId?.unique_id}</p>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
+                                                                        </td>
 
-                                                                <td>30 June 2025 10:00pm</td>
-                                                                <td>
+                                                                        <td>{formatDateTime(item?.createdAt)}</td>
+                                                                        {/* <td>
 
-                                                                    <span className="pending-data">Pending </span>
-                                                                </td>
-                                                                {/* <td>
+                                                                    <span className="pending-data">{item?.status} </span>
+                                                                </td> */}
+                                                                        {/* <td>
                                                                         <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
                                                                 </td> */}
 
-                                                                <td>
-                                                                    <div className="d-flex align-items-centet gap-2">
-                                                                        <div className="dropdown">
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                className="grid-dots-btn"
-                                                                                id="acticonMenu1"
-                                                                                data-bs-toggle="dropdown"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                <TbGridDots />
-                                                                            </a>
-                                                                            <ul
-                                                                                className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
-                                                                                aria-labelledby="acticonMenu1"
-                                                                            >
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="#" className="prescription-nav" href="#" >
-                                                                                        View Details
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Chat Now
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Video Call
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
-                                                                                        <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
-                                                                                    </NavLink>
-                                                                                </li>
-
-                                                                                <li className="prescription-item">
-                                                                                    <a className=" prescription-nav" href="#">
-
-                                                                                        <span className="danger-title">Reject</span>
+                                                                        <td>
+                                                                            <div className="d-flex align-items-centet gap-2">
+                                                                                <div className="dropdown">
+                                                                                    <a
+                                                                                        href="javascript:void(0)"
+                                                                                        className="grid-dots-btn"
+                                                                                        id="acticonMenu1"
+                                                                                        data-bs-toggle="dropdown"
+                                                                                        aria-expanded="false"
+                                                                                    >
+                                                                                        <TbGridDots />
                                                                                     </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
+                                                                                    <ul
+                                                                                        className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
+                                                                                        aria-labelledby="acticonMenu1"
+                                                                                    >
+                                                                                        <li className="prescription-item">
+                                                                                            <NavLink to={`/doctor/profile-approval/${item?.name}/${item?.userId?._id}`} className="prescription-nav" href="#" >
+                                                                                                View Details
+                                                                                            </NavLink>
+                                                                                        </li>
+                                                                                        <li className="prescription-item">
+                                                                                            <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
+                                                                                                Chat Now
+                                                                                            </NavLink>
+                                                                                        </li>
+                                                                                        <li className="prescription-item">
+                                                                                            <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
+                                                                                                Video Call
+                                                                                            </NavLink>
+                                                                                        </li>
+                                                                                        <li className="prescription-item">
+                                                                                            <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
+                                                                                                <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
+                                                                                            </NavLink>
+                                                                                        </li>
 
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
+                                                                                        <li className="prescription-item">
+                                                                                            <a className=" prescription-nav" href="#">
 
-                                                            <tr>
-                                                                <td>02.</td>
+                                                                                                <span className="danger-title">Reject</span>
+                                                                                            </a>
+                                                                                        </li>
+                                                                                    </ul>
+                                                                                </div>
 
-                                                                <td> #89324879</td>
-
-                                                                <td>
-                                                                    <div className="admin-table-bx">
-                                                                        <div className="admin-table-sub-details d-flex align-items-center gap-2">
-                                                                            <img src="/patient-pic.png" alt="" />
-                                                                            <div>
-                                                                                <h6 className="">Annette Black</h6>
-                                                                                <p>PA-9001</p>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-
-                                                                <td>30 June 2025 10:00pm</td>
-                                                                <td>
-
-                                                                    <span className="complete-data">Completed </span>
-                                                                </td>
-                                                                {/* <td>
-                                                                        <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
-                                                                </td> */}
-
-                                                                <td>
-                                                                    <div className="d-flex align-items-centet gap-2">
-                                                                        <div className="dropdown">
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                className="grid-dots-btn"
-                                                                                id="acticonMenu1"
-                                                                                data-bs-toggle="dropdown"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                <TbGridDots />
-                                                                            </a>
-                                                                            <ul
-                                                                                className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
-                                                                                aria-labelledby="acticonMenu1"
-                                                                            >
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="#" className="prescription-nav" href="#" >
-                                                                                        View Details
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Chat Now
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Video Call
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
-                                                                                        <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
-                                                                                    </NavLink>
-                                                                                </li>
-
-                                                                                <li className="prescription-item">
-                                                                                    <a className=" prescription-nav" href="#">
-
-                                                                                        <span className="danger-title">Reject</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr>
-                                                                <td>03.</td>
-
-                                                                <td> #89324879</td>
-
-                                                                <td>
-                                                                    <div className="admin-table-bx">
-                                                                        <div className="admin-table-sub-details d-flex align-items-center gap-2">
-                                                                            <img src="/patient-pic.png" alt="" />
-                                                                            <div>
-                                                                                <h6 className="">Annette Black</h6>
-                                                                                <p>PA-9001</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-
-                                                                <td>30 June 2025 10:00pm</td>
-                                                                <td>
-
-                                                                    <span className="complete-data">Completed </span>
-                                                                </td>
-                                                                {/* <td>
-                                                                        <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
-                                                                </td> */}
-
-                                                                <td>
-                                                                    <div className="d-flex align-items-centet gap-2">
-                                                                        <div className="dropdown">
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                className="grid-dots-btn"
-                                                                                id="acticonMenu1"
-                                                                                data-bs-toggle="dropdown"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                <TbGridDots />
-                                                                            </a>
-                                                                            <ul
-                                                                                className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
-                                                                                aria-labelledby="acticonMenu1"
-                                                                            >
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="#" className="prescription-nav" href="#" >
-                                                                                        View Details
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Chat Now
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Video Call
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
-                                                                                        <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
-                                                                                    </NavLink>
-                                                                                </li>
-
-                                                                                <li className="prescription-item">
-                                                                                    <a className=" prescription-nav" href="#">
-
-                                                                                        <span className="danger-title">Reject</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
+                                                                        </td>
+                                                                    </tr>) : 'No patient found'}
 
 
-                                                            <tr>
-                                                                <td>04.</td>
-
-                                                                <td> #89324879</td>
-
-                                                                <td>
-                                                                    <div className="admin-table-bx">
-                                                                        <div className="admin-table-sub-details d-flex align-items-center gap-2">
-                                                                            <img src="/patient-pic.png" alt="" />
-                                                                            <div>
-                                                                                <h6 className="">Annette Black</h6>
-                                                                                <p>PA-9001</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-
-                                                                <td>30 June 2025 10:00pm</td>
-                                                                <td>
-
-                                                                    <span className="cancel-data">Canceled </span>
-                                                                </td>
-                                                                {/* <td>
-                                                                        <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
-                                                                </td> */}
-
-                                                                <td>
-                                                                    <div className="d-flex align-items-centet gap-2">
-                                                                        <div className="dropdown">
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                className="grid-dots-btn"
-                                                                                id="acticonMenu1"
-                                                                                data-bs-toggle="dropdown"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                <TbGridDots />
-                                                                            </a>
-                                                                            <ul
-                                                                                className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
-                                                                                aria-labelledby="acticonMenu1"
-                                                                            >
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="#" className="prescription-nav" href="#" >
-                                                                                        View Details
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Chat Now
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Video Call
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
-                                                                                        <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
-                                                                                    </NavLink>
-                                                                                </li>
-
-                                                                                <li className="prescription-item">
-                                                                                    <a className=" prescription-nav" href="#">
-
-                                                                                        <span className="danger-title">Reject</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr>
-                                                                <td>05.</td>
-
-                                                                <td> #89324879</td>
-
-                                                                <td>
-                                                                    <div className="admin-table-bx">
-                                                                        <div className="admin-table-sub-details d-flex align-items-center gap-2">
-                                                                            <img src="/patient-pic.png" alt="" />
-                                                                            <div>
-                                                                                <h6 className="">Annette Black</h6>
-                                                                                <p>PA-9001</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-
-                                                                <td>30 June 2025 10:00pm</td>
-                                                                <td>
-
-                                                                    <span className="pending-data">Pending </span>
-                                                                </td>
-                                                                {/* <td>
-                                                                        <a href="javascript:void(0)" className="grid-dots-btn"><TbGridDots /></a>
-                                                                </td> */}
-
-                                                                <td>
-                                                                    <div className="d-flex align-items-centet gap-2">
-                                                                        <div className="dropdown">
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                className="grid-dots-btn"
-                                                                                id="acticonMenu1"
-                                                                                data-bs-toggle="dropdown"
-                                                                                aria-expanded="false"
-                                                                            >
-                                                                                <TbGridDots />
-                                                                            </a>
-                                                                            <ul
-                                                                                className="dropdown-menu dropdown-menu-end  tble-action-menu admin-dropdown-card"
-                                                                                aria-labelledby="acticonMenu1"
-                                                                            >
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="#" className="prescription-nav" href="#" >
-                                                                                        View Details
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Chat Now
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
-                                                                                        Video Call
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                                <li className="prescription-item">
-                                                                                    <NavLink to="/prescription-bar" className="prescription-nav " href="#" >
-                                                                                        <span className="accept-title "><FontAwesomeIcon icon={faCheck} /> Approve</span>
-                                                                                    </NavLink>
-                                                                                </li>
-
-                                                                                <li className="prescription-item">
-                                                                                    <a className=" prescription-nav" href="#">
-
-                                                                                        <span className="danger-title">Reject</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -530,7 +263,7 @@ function PatientProfileApprovalRequest() {
                     </div>
                 </div>
 
-            </section>
+            </section>}
         </>
     )
 }

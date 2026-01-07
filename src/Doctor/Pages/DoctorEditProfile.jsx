@@ -18,6 +18,7 @@ function DoctorEditProfile() {
     const [countries, setCountries] = useState([])
     const [states, setStates] = useState([])
     const [cities, setCities] = useState([])
+    const [hospitalOptions, setHospitalOptions] = useState([])
     const { profiles, kyc, medicalLicense, allowEdit, aboutDoctor, educationWork, customId, isRequest } = useSelector(state => state.doctor)
     const [formData, setFormData] = useState({
         name: "",
@@ -68,6 +69,7 @@ function DoctorEditProfile() {
     const addressSubmit = async (e) => {
         e.preventDefault();
         setLoading(true)
+        const data={...addressData,hospitalName:addressData?.hospitalName?.value}
         try {
             const response = await securePostData('doctor/about', addressData)
             if (response.success) {
@@ -106,7 +108,26 @@ function DoctorEditProfile() {
             setLoading(false)
         }
     }
+    async function fetchHospitals() {
+        setLoading(true)
+        try {
+            const response = await getApiData('api/hospital/list')
+            if (response.success) {
+                const formattedOptions = response.data.map(hospital => ({
+                    value: hospital._id,   // or hospital._id depending on your data
+                    label: hospital.name, // display name
+                }));
+
+                setHospitalOptions(formattedOptions)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
     useEffect(() => {
+        fetchHospitals()
         fetchCountries()
     }, [])
     async function fetchStates(value) {
@@ -295,12 +316,18 @@ function DoctorEditProfile() {
             // fetchCities(aboutDoctor?.stateId?.isoCode)
             setAddressData({
                 ...aboutDoctor, countryId: aboutDoctor?.countryId?._id,
-                stateId: aboutDoctor?.stateId?._id, cityId: aboutDoctor?.cityId?._id
+                stateId: aboutDoctor?.stateId?._id, cityId: aboutDoctor?.cityId?._id, hospitalName: aboutDoctor?.hospitalName
+                    ? {
+                        value: aboutDoctor.hospitalName._id,
+                        label: aboutDoctor.hospitalName.name, // must match what Select expects
+                    }
+                    : null
             })
+
+
         }
 
     }, [profiles, medicalLicense, educationWork, aboutDoctor])
-
     const treatmentValue = addressData.treatmentAreas[0] !== '' && addressData.treatmentAreas?.map(area => ({
         value: area,
         label: area
@@ -476,7 +503,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-6 col-md-6 col-sm-12" >
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">University / Institution</label>
-                                                                                        <input type="text" name="university" value={item?.university} onChange={(e)=>handleEducationChange(key,'university',e.target.value)} className="form-control new-control-frm px-5" placeholder="Enter Your University / Institution" />
+                                                                                        <input type="text" name="university" value={item?.university} onChange={(e) => handleEducationChange(key, 'university', e.target.value)} className="form-control new-control-frm px-5" placeholder="Enter Your University / Institution" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faFile} /> </span>
                                                                                         </div>
@@ -487,7 +514,7 @@ function DoctorEditProfile() {
                                                                                         <label>Degree / Qualification</label>
                                                                                         <div className="field custom-frm-bx mb-0 custom-select nw-custom-select admin-table-search-frm ">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faUser} /> </span>
-                                                                                            <select className="nw-select" name="degree" value={item?.degree} onChange={(e)=>handleEducationChange(key,'degree',e.target.value)}>
+                                                                                            <select className="nw-select" name="degree" value={item?.degree} onChange={(e) => handleEducationChange(key, 'degree', e.target.value)}>
                                                                                                 <option>--Select Degree / Qualification--</option>
                                                                                                 <option value="High School">High School</option>
                                                                                                 <option value="Intermediate">Intermediate / Higher Secondary</option>
@@ -535,7 +562,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-6 col-md-6 col-sm-12">
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">Year form</label>
-                                                                                        <input type="number" name="startYear" value={item?.startYear} onChange={(e)=>handleEducationChange(key,'startYear',e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
+                                                                                        <input type="number" name="startYear" value={item?.startYear} onChange={(e) => handleEducationChange(key, 'startYear', e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faCalendar} /> </span>
                                                                                         </div>
@@ -544,7 +571,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-6 col-md-6 col-sm-12">
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">Year To</label>
-                                                                                        <input type="number" name="endYear" value={item?.endYear} onChange={(e)=>handleEducationChange(key,'endYear',e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
+                                                                                        <input type="number" name="endYear" value={item?.endYear} onChange={(e) => handleEducationChange(key, 'endYear', e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faCalendar} /> </span>
                                                                                         </div>
@@ -570,7 +597,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-6 col-md-6 col-sm-12">
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">Organization / Hospital Name</label>
-                                                                                        <input type="text" name="organization" value={item?.organization} onChange={(e)=>handleExperienceChange(key,'organization',e.target.value)} className="form-control new-control-frm px-5" placeholder="Enter Your Organization / Hospital Name" />
+                                                                                        <input type="text" name="organization" value={item?.organization} onChange={(e) => handleExperienceChange(key, 'organization', e.target.value)} className="form-control new-control-frm px-5" placeholder="Enter Your Organization / Hospital Name" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faFile} /> </span>
                                                                                         </div>
@@ -579,7 +606,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-3 col-md-6 col-sm-12">
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">Year</label>
-                                                                                        <input type="number" name="totalYear" value={item?.totalYear} onChange={(e)=>handleExperienceChange(key,'totalYear',e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
+                                                                                        <input type="number" name="totalYear" value={item?.totalYear} onChange={(e) => handleExperienceChange(key, 'totalYear', e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faCalendar} /> </span>
                                                                                         </div>
@@ -589,7 +616,7 @@ function DoctorEditProfile() {
                                                                                 <div className="col-lg-3 col-md-6 col-sm-12">
                                                                                     <div className="custom-frm-bx">
                                                                                         <label htmlFor="">Month</label>
-                                                                                        <input type="number" name="month" value={item?.month} onChange={(e)=>handleExperienceChange(key,'month',e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
+                                                                                        <input type="number" name="month" value={item?.month} onChange={(e) => handleExperienceChange(key, 'month', e.target.value)} className="form-control new-control-frm px-5" placeholder="" />
                                                                                         <div className="contact-add-icon">
                                                                                             <span className="nw-contact-icon"> <FontAwesomeIcon icon={faCalendar} /> </span>
                                                                                         </div>
@@ -683,7 +710,23 @@ function DoctorEditProfile() {
                                                                         <div className="col-lg-6 col-md-6 col-sm-12">
                                                                             <div className="custom-frm-bx">
                                                                                 <label htmlFor="">Organization / Hospital Name</label>
-                                                                                <input type="text" name="hospitalName" value={addressData?.hospitalName} onChange={handleAddressChange} id="" className="form-control new-control-frm px-5" placeholder="Enter your Organization / Hospital Name" />
+                                                                                {/* <input type="text" name="hospitalName" value={addressData?.hospitalName} onChange={handleAddressChange} id="" className="form-control new-control-frm px-5" placeholder="Enter your Organization / Hospital Name" /> */}
+                                                                                <div className="select-wrapper">
+
+                                                                                    <Select
+                                                                                        options={hospitalOptions}
+                                                                                        name="hospitalName"
+                                                                                        value={addressData?.hospitalName || null}
+                                                                                        classNamePrefix="custom-select"
+                                                                                        placeholder="Select areas(s)"
+                                                                                        onChange={(selectedOption) => {
+                                                                                            setAddressData(prev => ({
+                                                                                                ...prev,
+                                                                                                hospitalName: selectedOption
+                                                                                            }));
+                                                                                        }}
+                                                                                    />
+                                                                                </div>
                                                                                 <div className="contact-add-icon">
                                                                                     <span className="nw-contact-icon"> <FontAwesomeIcon icon={faHospital} /> </span>
                                                                                 </div>
@@ -823,16 +866,16 @@ function DoctorEditProfile() {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                            <div className="profile-btm-footer">
-                                                                <div className="d-flex align-items-center justify-content-between">
-                                                                    <div>
-                                                                        <button className="nw-thm-btn outline">Back</button>
-                                                                    </div>
-                                                                    <div>
-                                                                        <button className="thm-btn">Save & Next</button>
+                                                                <div className="profile-btm-footer">
+                                                                    <div className="d-flex align-items-center justify-content-between">
+                                                                        <div>
+                                                                            <button className="nw-thm-btn outline">Back</button>
+                                                                        </div>
+                                                                        <div>
+                                                                            <button className="thm-btn">Save & Next</button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
                                                             </form>
                                                         </div>
                                                     </div>

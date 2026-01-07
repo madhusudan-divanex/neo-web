@@ -16,7 +16,7 @@ function LabReport() {
     const [totalData, setTotalData] = useState(1)
     const [allReports, setAllReports] = useState([])
     const [showDownload, setShowDownload] = useState(false);
-    const [pdfLoading,setPdfLoading]=useState(null)
+    const [pdfLoading, setPdfLoading] = useState(null)
     const [selectedReport, setSelectedReport] = useState(null);
 
     const fetchLabReports = async () => {
@@ -40,7 +40,7 @@ function LabReport() {
             fetchLabReports()
         }
     }, [userId])
-    const handleDownload = (appointmentId, testId,id) => {
+    const handleDownload = (appointmentId, testId, id) => {
         setPdfLoading(id)
         setSelectedReport({ appointmentId, testId });
         setShowDownload(true);
@@ -73,8 +73,6 @@ function LabReport() {
                                                                     <th>Date</th>
                                                                     <th>Test name</th>
                                                                     <th>Action</th>
-
-
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -82,22 +80,25 @@ function LabReport() {
                                                                 {allReports?.length > 0 ?
                                                                     allReports?.map((item, key) => <tr>
                                                                         <td>{key + 1}.</td>
-                                                                        <td>{new Date(item?.createdAt)?.toLocaleDateString()}</td>
+                                                                        <td>{new Date(item?.createdAt)?.toLocaleDateString('en-GB', {
+                                                                            day: 'numeric',
+                                                                            month: 'long',
+                                                                            year: 'numeric',
+                                                                        })}</td>
                                                                         <td>{item?.testId?.shortName}</td>
                                                                         <td>
                                                                             <div>
                                                                                 <button
                                                                                     className="thm-btn thm-outline-btn"
-                                                                                    disabled={pdfLoading!==null}
+                                                                                    disabled={pdfLoading !== null}
                                                                                     onClick={() =>
-                                                                                        handleDownload(item?.appointmentId, item?.testId?._id,item?._id)
+                                                                                        handleDownload(item?.appointmentId, item?.testId?._id, item?._id)
                                                                                     }
                                                                                 >
                                                                                     <FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} />
-                                                                                    {pdfLoading==item?._id?'Downloading':'Download'}
+                                                                                    {pdfLoading == item?._id ? 'Downloading' : 'Download'}
                                                                                 </button>
                                                                             </div>
-
                                                                         </td>
 
                                                                     </tr>) : 'No record'}
@@ -125,7 +126,7 @@ function LabReport() {
                         <ReportDownload
                             appointmentId={selectedReport?.appointmentId?._id}
                             currentTest={selectedReport?.testId}
-                            endLoading={()=>setPdfLoading(null)}
+                            endLoading={() => setPdfLoading(null)}
                             pdfLoading={pdfLoading}
                         />
                     </div>}

@@ -132,7 +132,7 @@ function DoctorProfileEditRequest() {
                                                 <div className="doctor-hospital-info">
                                                     <div className="doctor-hospital-pic mb-2" >
                                                         <img src="/hospital.svg" alt="" />
-                                                        <h5>{aboutDoctor?.hospitalName}</h5>
+                                                        <h5>{aboutDoctor?.hospitalName?.name}</h5>
                                                     </div>
 
                                                     <div className="doctor-info-list mb-3">

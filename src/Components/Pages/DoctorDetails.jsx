@@ -145,7 +145,7 @@ function DoctorDetails() {
                       <div className="d-flex justify-content-between  align-items-start">
                         <div className="docotr-estetment-bx">
                           <h4>Dr. {doctorData?.name}</h4>
-                          <h6> {doctorAbout?.specialty}  <span className="slash-title"> | </span> {doctorAbout?.hospitalName} </h6>
+                          <h6> {doctorAbout?.specialty}  <span className="slash-title"> | </span> {doctorAbout?.hospitalName?.name} </h6>
                           <p> Language : <span className="language-title">{doctorAbout?.language?.map(l => l).join(', ')}</span> </p>
                           <h5> <i className="fas fa-map-marker-alt me-1" style={{ color: "#052F59" }}></i> {doctorAbout?.cityId?.name + ', ' + doctorAbout?.stateId?.name} </h5>
                         </div>

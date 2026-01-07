@@ -471,7 +471,7 @@ function Router() {
           path: "/vaccine-certificate",
           element: <VaccineCertificate />,
         },
-         {
+        {
           path: "/uip-vaccine-certificate",
           element: <VaccineCertificateUip />,
         },
@@ -487,110 +487,8 @@ function Router() {
           element: <ChildProfile />,
         },
 
-        
-        //  Doctor Routes 
-        {
-          path: "/doctor/add-appointment",
-          element: <AddAppointment />,
-        },
 
-        {
-          path: "/doctor/add-patient",
-          element: <AddPatient />,
-        },
-
-        {
-          path: "/doctor/change-password",
-          element: <DoctorChangePassword />,
-        },
-
-
-        {
-          path: "/doctor/edit-profile",
-          element: <DoctorEditProfile />,
-        },
-
-        {
-          path: "/doctor/chat",
-          element: <DoctorChat />,
-        },
-
-        {
-          path: "/doctor/video-call",
-          element: <DoctorVideoCall />,
-        },
-
-
-        {
-          path: "/doctor/add-prescriptions/:id",
-          element: <DoctorAddPrescriptions />,
-        },
-
-        {
-          path: "/doctor/edit-prescriptions",
-          element: <DoctorEditPrescriptions />,
-        },
-
-        {
-          path: "/doctor/patient-history",
-          element: <PatientHistory />,
-        },
-
-        {
-          path: "/doctor/detail-view/:name/:id",
-          element: <DoctorDetailsView />,
-        },
-        {
-          path: "/doctor/requests",
-          element: <DoctorRequests />,
-        },
-
-        {
-          path: "/doctor/appointment-list",
-          element: <DoctorAppointmentsList />,
-        },
-
-        {
-          path: "/doctor/profile-approval-request",
-          element: <PatientProfileApprovalRequest />,
-        },
-
-        {
-          path: "/doctor/profile-approval",
-          element: <DoctorProfileApproval />,
-        },
-
-
-        {
-          path: "/doctor/approval-details",
-          element: <DoctorApprovedDetails />,
-        },
-
-        {
-          path: "/doctor/reject-details",
-          element: <DoctorRejectDetails />,
-        },
-
-        {
-          path: "/doctor/request-list",
-          element: <DoctorRequestsList />,
-        },
-
-        {
-          path: "/doctor/request-view",
-          element: <DoctorReportView />,
-        },
-
-        {
-          path: "/doctor/profile-edit-request",
-          element: <DoctorProfileEditRequest />,
-        },
-
-        {
-          path: "/doctor/profile-accept-request",
-          element: <DoctorProfileAcceptRequest />,
-        },
-
+        //  Doctor Routes
         {
           path: "/doctor/login",
           element: <DoctorLogin />,
@@ -678,6 +576,109 @@ function Router() {
               path: "/health-card-details",
               element: <HealthCardDetails />,
             },
+            //  Doctor Routes 
+            {
+              path: "/doctor/add-appointment",
+              element: <AddAppointment />,
+            },
+
+            {
+              path: "/doctor/add-patient",
+              element: <AddPatient />,
+            },
+
+            {
+              path: "/doctor/change-password",
+              element: <DoctorChangePassword />,
+            },
+
+
+            {
+              path: "/doctor/edit-profile",
+              element: <DoctorEditProfile />,
+            },
+
+            {
+              path: "/doctor/chat",
+              element: <DoctorChat />,
+            },
+
+            {
+              path: "/doctor/video-call",
+              element: <DoctorVideoCall />,
+            },
+
+
+            {
+              path: "/doctor/add-prescriptions/:id",
+              element: <DoctorAddPrescriptions />,
+            },
+
+            {
+              path: "/doctor/edit-prescriptions",
+              element: <DoctorEditPrescriptions />,
+            },
+
+            {
+              path: "/doctor/patient-history",
+              element: <PatientHistory />,
+            },
+
+            {
+              path: "/doctor/detail-view/:name/:id",
+              element: <DoctorDetailsView />,
+            },
+            {
+              path: "/doctor/requests",
+              element: <DoctorRequests />,
+            },
+
+            {
+              path: "/doctor/appointment-list",
+              element: <DoctorAppointmentsList />,
+            },
+
+            {
+              path: "/doctor/profile-approval-request",
+              element: <PatientProfileApprovalRequest />,
+            },
+
+            {
+              path: "/doctor/profile-approval/:name/:id",
+              element: <DoctorProfileApproval />,
+            },
+
+
+            {
+              path: "/doctor/approval-details",
+              element: <DoctorApprovedDetails />,
+            },
+
+            {
+              path: "/doctor/reject-details",
+              element: <DoctorRejectDetails />,
+            },
+
+            {
+              path: "/doctor/request-list",
+              element: <DoctorRequestsList />,
+            },
+
+            {
+              path: "/doctor/report-view/:id/:currentTest",
+              element: <DoctorReportView />,
+            },
+
+            {
+              path: "/doctor/profile-edit-request",
+              element: <DoctorProfileEditRequest />,
+            },
+
+            {
+              path: "/doctor/profile-accept-request",
+              element: <DoctorProfileAcceptRequest />,
+            },
+
 
 
           ]

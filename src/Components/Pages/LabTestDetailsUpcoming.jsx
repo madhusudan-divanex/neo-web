@@ -134,7 +134,7 @@ function LabTestDetailsUpcoming() {
                                                         <div className="appoint-left-title-bx">
                                                             <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> {formatDateTime(appointmentData?.date)} </h5>
                                                         </div>
-                                                        {new Date() < appointmentData?.date &&
+                                                        {new Date() < new Date(appointmentData?.date) &&
                                                             <div className="appoint-right-title-bx">
                                                                 <span className="nw-result-bx">Upcoming</span>
                                                             </div>}

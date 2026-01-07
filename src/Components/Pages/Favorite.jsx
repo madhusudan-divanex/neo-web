@@ -129,7 +129,7 @@ function Favorite() {
                                                                                 <div className="my-2">
                                                                                     <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating}</span>
                                                                                 </div>
-                                                                                <h6 className="nw-hospital-title">{item?.doctorAbout?.specialty} <span className="slash-title" >|</span> {item?.doctorAbout?.hospitalName}</h6>
+                                                                                <h6 className="nw-hospital-title">{item?.doctorAbout?.specialty} <span className="slash-title" >|</span> {item?.doctorAbout?.hospitalName?.name}</h6>
                                                                                 <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
                                                                                 <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAbout?.city}, {item?.doctorAbout?.state}</p>
                                                                                 <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ {item?.doctorAbout?.fees}</h5>

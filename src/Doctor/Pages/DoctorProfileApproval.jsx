@@ -1,12 +1,67 @@
 import { faChevronLeft, faChevronRight, faDroplet, faEye, faMarsAndVenus, faPerson, faRulerVertical, faWeightScale, } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProfileSidebar from "./ProfileSidebar"
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getSecureApiData, securePostData } from "../../Services/api";
+import base_url from "../../baseUrl";
+import { calculateAge } from "../../Services/globalFunction";
+import { toast } from "react-toastify";
+import Loader from "../../Loader/Loader";
 
 function DoctorProfileApproval() {
+    const params = useParams()
+    const patientId = params.id
+    const navigate=useNavigate()
+    const [loading, setLoading] = useState(false)
+    const doctorId=localStorage.getItem('userId')
+    const [medicalHistory, setMedicalHisotry] = useState()
+    const [prescription, setPrescription] = useState([])
+    const [patientData, setPatientData] = useState()
+    const [demographic, setDemographic] = useState()
+    const [customId, setCustomId] = useState()
+    const [note, setNote] = useState('')
+    async function fetchPatientProfile() {
+        setLoading(true)
+        try {
+            const result = await getSecureApiData(`patient/profile-detail/${patientId}`)
+            if (result.success) {
+                setDemographic(result?.demographic)
+                setMedicalHisotry(result.medicalHistory)
+                setPrescription(result?.prescription?.prescriptions)
+                setPatientData(result?.user)
+                setCustomId(result.customId)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
+    useEffect(() => {
+        if (patientId) {
+            fetchPatientProfile()
+        }
+    }, [patientId])
+    const handleAction=async(status)=>{
+        const data={status,note,patientId,doctorId}
+        setLoading(true)
+        try {
+            const response=await securePostData('patient/profile-action',data)
+            if(response.success){
+                toast.success('Profile updated')
+                navigate('/doctor/profile-approval-request')
+            }
+        } catch (error) {
+            
+        } finally{
+            setLoading(false)
+        }
+    }
     return (
         <>
-            <section className="new-profile-section">
+            {loading?<Loader/>
+            :<section className="new-profile-section">
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-3 col-sm-12 mb-3">
@@ -96,7 +151,7 @@ function DoctorProfileApproval() {
                                                             <div className="row">
                                                                 <div className="col-lg-12">
                                                                     <div>
-                                                                        <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
+                                                                        {/* <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                                                                             <div class="form-check uniquee">
                                                                                 <input class="form-check-input" type="checkbox" id="approve" checked />
                                                                                 <label class="form-check-label" for="approve">
@@ -111,7 +166,7 @@ function DoctorProfileApproval() {
                                                                                 </label>
                                                                             </div>
 
-                                                                        </div>
+                                                                        </div> */}
 
                                                                         <fieldset class="address-fieldset mb-4">
                                                                             <legend class="float-none w-auto px-3 legend-heading">
@@ -119,10 +174,11 @@ function DoctorProfileApproval() {
                                                                             </legend>
                                                                             <div className=" patient-details-bx mb-3">
                                                                                 <div className="admin-table-sub-bx patient-avartr-bx gap-3">
-                                                                                    <img src="/table-avatar.jpg" alt="" />
+                                                                                    <img src={patientData?.profileImage ? `${base_url}/${patientData?.profileImage}`
+                                                                                        : "/table-avatar.jpg"} alt="" />
                                                                                     <div className="patient-bio-content">
-                                                                                        <h6>Sunil Kumar Sharma</h6>
-                                                                                        <p>ID: SUNIL33209490</p>
+                                                                                        <h6>{patientData?.name}</h6>
+                                                                                        <p>ID: {customId}</p>
                                                                                     </div>
                                                                                 </div>
 
@@ -130,11 +186,11 @@ function DoctorProfileApproval() {
                                                                             </div>
                                                                             <div className="d-flex align-items-center justify-content-between flex-wrap">
                                                                                 <ul className="patient-bio-list">
-                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faPerson} /> Age :<span className="patient-bio-title"> 18</span> </li>
-                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faMarsAndVenus} /> Gender :<span className="patient-bio-title"> Male</span> </li>
-                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faRulerVertical} /> Height :<span className="patient-bio-title"> 6 fit </span> </li>
-                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faWeightScale} /> Weight :<span className="patient-bio-title"> 50 Kg</span> </li>
-                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faDroplet} /> Blood Group :<span className="patient-bio-title"> B+</span> </li>
+                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faPerson} /> Age :<span className="patient-bio-title"> {calculateAge(demographic?.dob)}</span> </li>
+                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faMarsAndVenus} /> Gender :<span className="patient-bio-title"> {patientData?.gender}</span> </li>
+                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faRulerVertical} /> Height :<span className="patient-bio-title"> {demographic?.height} </span> </li>
+                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faWeightScale} /> Weight :<span className="patient-bio-title"> {demographic?.weight}</span> </li>
+                                                                                    <li className="patient-bio-item"><FontAwesomeIcon icon={faDroplet} /> Blood Group :<span className="patient-bio-title"> {demographic?.bloodGroup}</span> </li>
                                                                                 </ul>
                                                                                 <div>
                                                                                     <NavLink to="/patient-view" className="option-rep-add-btn">View More</NavLink>
@@ -151,10 +207,19 @@ function DoctorProfileApproval() {
                                                             <div className="d-flex align-items-center justify-content-between">
                                                                 <div className="d-flex gap-3">
                                                                     <button className="nw-prev-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronRight} /> </button>
+                                                                    <button type="button" className="nw-next-btn"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#profile-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }}> <FontAwesomeIcon icon={faChevronRight} /> </button>
                                                                 </div>
                                                                 <div className="">
-                                                                    <button className="thm-btn">Next & submit</button>
+                                                                    <button type="button" onClick={() => {
+                                                                            const triggerEl = document.querySelector('#profile-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }} className="thm-btn">Next & submit</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -166,7 +231,7 @@ function DoctorProfileApproval() {
                                                                 <div className="row">
                                                                     <div className="col-lg-12">
                                                                         <div>
-                                                                            <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
+                                                                            {/* <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                                                                                 <div class="form-check uniquee">
                                                                                     <input class="form-check-input" type="checkbox" id="approve" checked />
                                                                                     <label class="form-check-label" for="approve">
@@ -181,7 +246,7 @@ function DoctorProfileApproval() {
                                                                                     </label>
                                                                                 </div>
 
-                                                                            </div>
+                                                                            </div> */}
 
                                                                             <fieldset class="address-fieldset mb-4">
                                                                                 <legend class="float-none w-auto px-3 field-title">
@@ -191,12 +256,12 @@ function DoctorProfileApproval() {
                                                                                 <div className="medical-history-content">
                                                                                     <div>
                                                                                         <h4 className="fz-16 fw-700">Do you have any chronic conditions?</h4>
-                                                                                        <h5 className="hearth-disese">Heart Disease</h5>
+                                                                                        <h5 className="hearth-disese">{medicalHistory?.chronicCondition}</h5>
                                                                                     </div>
 
                                                                                     <div className="mt-3">
                                                                                         <h4 className="fz-16 fw-700">Are you currently on any medications?</h4>
-                                                                                        <h5 className="hearth-disese">Yes</h5>
+                                                                                        <h5 className="hearth-disese">{medicalHistory?.onMedication ? 'Yes' : 'No'}</h5>
                                                                                     </div>
 
                                                                                 </div>
@@ -204,20 +269,14 @@ function DoctorProfileApproval() {
                                                                                 <div className="medical-history-content my-3">
                                                                                     <div>
                                                                                         <h4 className="fz-16 fw-700">Medication Details</h4>
-                                                                                        <p>ACE Inhibitors (Twice daily)</p>
-                                                                                        <p>Beta Blockers  (Once daily)</p>
+                                                                                        <p>{medicalHistory?.medicationDetail}</p>
                                                                                     </div>
 
                                                                                     <div className="mt-3">
                                                                                         <h4 className="fz-16 fw-700">Allergies</h4>
-                                                                                        <p>Penicillin</p>
-                                                                                        <p>Peanuts</p>
+                                                                                        <p>{medicalHistory?.allergies}</p>
                                                                                     </div>
 
-                                                                                    <div className="mt-3">
-                                                                                        <h4 className="fz-16 fw-700">Are you currently on any medications?</h4>
-                                                                                        <h5 className="hearth-disese">Yes</h5>
-                                                                                    </div>
 
                                                                                 </div>
 
@@ -235,11 +294,22 @@ function DoctorProfileApproval() {
                                                             <div className="profile-btm-footer">
                                                                 <div className="d-flex align-items-center justify-content-between">
                                                                     <div className="d-flex gap-3">
-                                                                        <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
-                                                                        <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronRight} /> </button>
+                                                                        <button type="button" className="nw-next-btn"
+                                                                        > <FontAwesomeIcon icon={faChevronLeft} /> </button>
+                                                                        <button type="button" className="nw-next-btn"
+                                                                            onClick={() => {
+                                                                                const triggerEl = document.querySelector('#contact-tab');
+                                                                                const tab = new window.bootstrap.Tab(triggerEl);
+                                                                                tab.show();
+                                                                            }}> <FontAwesomeIcon icon={faChevronRight} /> </button>
                                                                     </div>
                                                                     <div className="">
-                                                                        <button className="thm-btn">Next & submit</button>
+                                                                        <button type="button"
+                                                                            onClick={() => {
+                                                                                const triggerEl = document.querySelector('#contact-tab');
+                                                                                const tab = new window.bootstrap.Tab(triggerEl);
+                                                                                tab.show();
+                                                                            }} className="thm-btn">Next & submit</button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -250,7 +320,7 @@ function DoctorProfileApproval() {
 
                                                         <div className="all-profile-data-bx">
                                                             <div>
-                                                                <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
+                                                                {/* <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                                                                     <div class="form-check uniquee">
                                                                         <input class="form-check-input" type="checkbox" id="approve" checked />
                                                                         <label class="form-check-label" for="approve">
@@ -264,8 +334,7 @@ function DoctorProfileApproval() {
                                                                             Reject
                                                                         </label>
                                                                     </div>
-
-                                                                </div>
+                                                                </div> */}
 
                                                                 <fieldset class="address-fieldset mb-4">
                                                                     <legend class="float-none w-auto px-3 field-title">
@@ -275,17 +344,14 @@ function DoctorProfileApproval() {
                                                                     <div className="medical-history-content">
                                                                         <div>
                                                                             <h4 className="fz-16 fw-700">Any family history of chronic disease?</h4>
-                                                                            <h5 className="hearth-disese">Yes</h5>
+                                                                            <h5 className="hearth-disese">{medicalHistory?.familyHistory?.chronicHistory}</h5>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="medical-history-content my-3">
                                                                         <div>
                                                                             <h4 className="fz-16 fw-700">Chronic Diseases in Family</h4>
-                                                                            <p>Father: Hypertension, Type 2 Diabetes</p>
-                                                                            <p>Mother: Osteoarthritis</p>
-                                                                            <p>Maternal Grandfather: Heart Disease</p>
-                                                                            <p>Paternal Grandmother: Stroke</p>
+                                                                            <p> {medicalHistory?.familyHistory?.diseasesInFamily}</p>
                                                                         </div>
                                                                     </div>
                                                                 </fieldset>
@@ -299,11 +365,26 @@ function DoctorProfileApproval() {
                                                         <div className="profile-btm-footer">
                                                             <div className="d-flex align-items-center justify-content-between">
                                                                 <div className="d-flex gap-3">
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronRight} /> </button>
+                                                                    <button type="button" className="nw-next-btn"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#profile-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }}> <FontAwesomeIcon icon={faChevronLeft} /> </button>
+                                                                    <button type="button" className="nw-next-btn"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#upload-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }}> <FontAwesomeIcon icon={faChevronRight} /> </button>
                                                                 </div>
                                                                 <div className="">
-                                                                    <button className="thm-btn">Next & submit</button>
+                                                                    <button type="button"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#upload-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }} className="thm-btn">Next & submit</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -314,102 +395,60 @@ function DoctorProfileApproval() {
                                                         <div className="all-profile-data-bx">
                                                             <fieldset class="address-fieldset mb-4">
                                                                 <legend class="float-none w-auto px-3 field-title">
-                                                                    Family Medical History
+                                                                    Prescriptions and reports
                                                                 </legend>
                                                                 <div className="row">
-                                                                    <div className="col-lg-6 col-sm-12 mb-3">
-                                                                        <div className="prescription-patients-card">
-                                                                            <div className="prescription-patients-picture">
-                                                                                <img src="/patient-card-one.png" alt="" />
-                                                                            </div>
-                                                                            <div className="card-details-bx">
-                                                                                <div className="card-info-title">
-                                                                                    <h3>CBC Report 8/21/2025</h3>
-                                                                                    <p>8/21/2025</p>
+                                                                    {prescription?.length > 0 &&
+                                                                        prescription?.map((item, key) =>
+                                                                            <div className="col-lg-6 col-sm-12 mb-3" key={key}>
+                                                                                <div className="prescription-patients-card">
+                                                                                    <div className="prescription-patients-picture">
+                                                                                        <img src={item?.fileUrl ?
+                                                                                            `${base_url}/${item?.fileUrl}` : "/patient-card-one.png"} alt="" />
+                                                                                    </div>
+                                                                                    <div className="card-details-bx">
+                                                                                        <div className="card-info-title">
+                                                                                            <h3>{item?.name}</h3>
+                                                                                            {/* <p>8/21/2025</p> */}
+                                                                                        </div>
+                                                                                        <div className="">
+                                                                                            <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
+                                                                            </div>)}
 
-                                                                                <div className="">
-                                                                                    <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="col-lg-6 col-sm-12 d-flex justify-content-center">
-                                                                        <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
-                                                                            <div class="form-check uniquee">
-                                                                                <input class="form-check-input" type="checkbox" id="approve" checked />
-                                                                                <label class="form-check-label" for="approve">
-                                                                                    Approve
-                                                                                </label>
-                                                                            </div>
-
-                                                                            <div class="form-check uniquee">
-                                                                                <input class="form-check-input" type="checkbox" id="reject" />
-                                                                                <label class="form-check-label" for="reject">
-                                                                                    Reject
-                                                                                </label>
-                                                                            </div>
-
-                                                                        </div>
-                                                                    </div>
 
 
                                                                 </div>
 
 
-                                                                <div className="row">
 
-                                                                    <div className="col-lg-6 col-sm-12 mb-3">
-                                                                        <div className="prescription-patients-card">
-                                                                            <div className="prescription-patients-picture">
-
-                                                                                <img src="/patient-card-two.png" alt="" />
-                                                                            </div>
-                                                                            <div className="card-details-bx">
-                                                                                <div className="card-info-title">
-                                                                                    <h3>Prescriptions 8/21/2025</h3>
-                                                                                    <p>8/21/2025</p>
-                                                                                </div>
-
-                                                                                <div className="">
-                                                                                    <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                    </div>
-
-                                                                    <div className="col-lg-6 col-sm-12 d-flex justify-content-center">
-                                                                        <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
-                                                                            <div class="form-check uniquee">
-                                                                                <input class="form-check-input" type="checkbox" id="approve" checked />
-                                                                                <label class="form-check-label" for="approve">
-                                                                                    Approve
-                                                                                </label>
-                                                                            </div>
-
-                                                                            <div class="form-check uniquee">
-                                                                                <input class="form-check-input" type="checkbox" id="reject" />
-                                                                                <label class="form-check-label" for="reject">
-                                                                                    Reject
-                                                                                </label>
-                                                                            </div>
-
-                                                                        </div>
-                                                                    </div>
-
-                                                                </div>
                                                             </fieldset>
                                                         </div>
                                                         <div className="profile-btm-footer">
                                                             <div className="d-flex align-items-center justify-content-between">
                                                                 <div className="d-flex gap-3">
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronRight} /> </button>
+                                                                    <button type="button" className="nw-next-btn"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#contact-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }}> <FontAwesomeIcon icon={faChevronLeft} /> </button>
+                                                                    <button type="button" className="nw-next-btn"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#notes-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }}> <FontAwesomeIcon icon={faChevronRight} /> </button>
                                                                 </div>
                                                                 <div className="">
-                                                                    <button className="thm-btn">Next & submit</button>
+                                                                    <button type="button"
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#notes-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }} className="thm-btn">Next & submit</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -424,7 +463,7 @@ function DoctorProfileApproval() {
                                                                     <div className="col-lg-12">
                                                                         <div className="custom-frm-bx">
                                                                             <label htmlFor="">Note</label>
-                                                                            <textarea name="" id="" className="form-control nw-frm-select nw-text-filed"></textarea>
+                                                                            <textarea value={note} onChange={(e) => setNote(e.target.value)} name="" id="" className="form-control nw-frm-select nw-text-filed"></textarea>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -435,12 +474,18 @@ function DoctorProfileApproval() {
                                                         <div className="profile-btm-footer">
                                                             <div className="d-flex align-items-center justify-content-between">
                                                                 <div className="d-flex gap-3">
-                                                                    <button className="nw-next-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const triggerEl = document.querySelector('#upload-tab');
+                                                                            const tab = new window.bootstrap.Tab(triggerEl);
+                                                                            tab.show();
+                                                                        }} type="button" className="nw-next-btn"> <FontAwesomeIcon icon={faChevronLeft} /> </button>
                                                                     <button className="nw-prev-btn"> <FontAwesomeIcon icon={faChevronRight} /> </button>
                                                                 </div>
                                                                 <div className="d-flex gap-3">
-                                                                    <button className="nw-danger-thm-btn">Reject</button>
-                                                                    <button className="thm-btn">Approve</button>
+                                                                    <button type="button"
+                                                                        className="nw-danger-thm-btn" onClick={() => handleAction('rejected')}>Reject</button>
+                                                                    <button type="button" className="thm-btn" onClick={() => handleAction('approved')}>Approve</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -464,7 +509,7 @@ function DoctorProfileApproval() {
                     </div>
                 </div>
 
-            </section>
+            </section>}
         </>
     )
 }

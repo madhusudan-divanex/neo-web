@@ -19,6 +19,7 @@ import html2pdf from "html2pdf.js";
 import Barcode from "react-barcode";
 import Select from "react-select";
 import { Modal } from "bootstrap/dist/js/bootstrap.bundle.min";
+import ReportDownload from "../../Components/Pages/ReportDownload";
 function DoctorDetailsView() {
     const navigate = useNavigate()
     const params = useParams()
@@ -35,7 +36,11 @@ function DoctorDetailsView() {
     const [labOptions, setLabOptions] = useState()
     const [testOptions, setTestOptions] = useState([])
     const [selectedLab, setSelectedLab] = useState()
+    const [labReports, setLabReports] = useState([])
     const [selectedTest, setSelectedTest] = useState([])
+    const [showDownload, setShowDownload] = useState(false);
+    const [pdfLoading, setPdfLoading] = useState(null)
+    const [selectedReport, setSelectedReport] = useState(null);
     const { profiles, customId } = useSelector(state => state.doctor)
     async function fetchAppointmentData() {
         setLoading(true)
@@ -125,9 +130,26 @@ function DoctorDetailsView() {
             setLoading(false)
         }
     }
+    async function fetchLabReports() {
+        if (!appointmentData) {
+            return
+        }
+        setLoading(true)
+        try {
+            const result = await getSecureApiData(`doctor/patient-lab-report/${appointmentData?.doctorId?._id}/${appointmentData?.patientId?._id}`)
+            if (result.success) {
+                setLabReports(result?.data)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
     useEffect(() => {
         fetchPatientProfile()
         fetchPastAppointments()
+        fetchLabReports()
     }, [appointmentData])
 
     const startChatWithUser = async (user) => {
@@ -227,6 +249,20 @@ function DoctorDetailsView() {
         }
 
     };
+    const handleReportDownload = (appointmentId, testId, id) => {
+        setPdfLoading(id)
+        setSelectedReport({ appointmentId, testId });
+        setShowDownload(true);
+    };
+    useEffect(() => {
+        if (pastPresData) {
+            const modalEl = document.getElementById("prescription-Modal");
+            if (modalEl) {
+                const modal = new window.bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+    }, [pastPresData]);
     return (
         <>
             {loading ? <Loader />
@@ -368,8 +404,8 @@ function DoctorDetailsView() {
                                                                             <div className="d-flex align-items-center gap-2 flex-wrap">
                                                                                 {appointmentData?.status !== 'completed' &&
                                                                                     <button className="progress-btn" onClick={() => appointmentAction('completed')}> <FontAwesomeIcon icon={faCheck} /> Mark as in Complete</button>}
-                                                                                {!appointmentData?.labTest && 
-                                                                                <button className="thm-btn" data-bs-toggle="modal" data-bs-target="#add-Lab"> <BsPlusCircleFill /> Add Lab Test </button>}
+                                                                                {!appointmentData?.labTest &&
+                                                                                    <button className="thm-btn" data-bs-toggle="modal" data-bs-target="#add-Lab"> <BsPlusCircleFill /> Add Lab Test </button>}
                                                                                 <Link to={`/doctor/add-prescriptions/${params.id}`} className="thm-btn"> <BsPlusCircleFill /> {appointmentData?.prescriptionId ? 'Edit' : 'Add'} Prescriptions</Link>
                                                                             </div>
                                                                         </div>
@@ -473,17 +509,15 @@ function DoctorDetailsView() {
                                                                                                                         month: "long",
                                                                                                                         year: "numeric",
                                                                                                                     })
-                                                                                                                    }  </p>
+                                                                                                                    } </p>
                                                                                                                 </div>
                                                                                                             </div>
-
                                                                                                             <div className="col-lg-6 mb-3">
                                                                                                                 <div className="general-info-content">
                                                                                                                     <h5>Appointment Date</h5>
                                                                                                                     <p>{formatDateTime(item?.date)}</p>
                                                                                                                 </div>
                                                                                                             </div>
-
                                                                                                             <div className="col-lg-6 mb-3">
                                                                                                                 <div className="general-info-content">
                                                                                                                     <h5>Status</h5>
@@ -547,7 +581,7 @@ function DoctorDetailsView() {
                                                                                                                                         </NavLink>
                                                                                                                                     </li>
                                                                                                                                     <li className="prescription-item">
-                                                                                                                                        <NavLink to="#" className="prescription-nav" onClick={() => setPastPresData(item?.prescriptionId)} data-bs-toggle="modal" data-bs-target="#prescription-Modal" >
+                                                                                                                                        <NavLink to="#" className="prescription-nav" onClick={() => setPastPresData(item?.prescriptionId)} >
                                                                                                                                             View
                                                                                                                                         </NavLink>
                                                                                                                                     </li>
@@ -589,32 +623,42 @@ function DoctorDetailsView() {
                                                                                                         </div>
                                                                                                         <div className="lab-parent-bx">
                                                                                                             <div className="nw-presc-lab-bx">
-                                                                                                                <img src="/lab-pic.png" alt="" />
+                                                                                                                <img src={item?.labTest?.lab?.labId?.logo ? `${base_url}/${item?.labTest?.lab?.labId?.logo}`
+                                                                                                                    : "/lab-pic.png"} alt="" />
                                                                                                                 <div className="appointment-info-details">
-                                                                                                                    <h4 className="">Advance Lab Tech</h4>
-                                                                                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                                                                                    <h4 className="">{item?.labTest?.lab?.name}</h4>
+                                                                                                                    {/* <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p> */}
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                         </div>
-                                                                                                        <div className="prescriptin-bx my-3">
-                                                                                                            <div className="prescriptin-content">
-                                                                                                                <div className="prescriptin-picture lab-test-bx">
-                                                                                                                    <img src="/lab-tube.svg" alt="" style={{ width: "50px", height: "50px" }} />
-                                                                                                                    <div>
-                                                                                                                        <h6 className="fz-18 fw-700 mb-0">CBC Report</h6>
-                                                                                                                        <p>30 June 2025</p>
+                                                                                                        {item?.labTest?.labTests?.map((t, key) =>
+                                                                                                            <div className="prescriptin-bx my-3" key={key}>
+                                                                                                                <div className="prescriptin-content">
+                                                                                                                    <div className="prescriptin-picture lab-test-bx">
+                                                                                                                        <img src="/lab-tube.svg" alt="" style={{ width: "50px", height: "50px" }} />
+                                                                                                                        <div>
+                                                                                                                            <h6 className="fz-18 fw-700 mb-0">{t?.shortName} Report</h6>
+                                                                                                                            <p>  {(() => {
+                                                                                                                                const report = item?.labAppointment?.reports?.find(
+                                                                                                                                    r => String(r.testId) === String(t._id)
+                                                                                                                                );
+                                                                                                                                return report
+                                                                                                                                    ? new Date(report.createdAt).toLocaleDateString("en-GB", {
+                                                                                                                                        day: "2-digit",
+                                                                                                                                        month: "long",
+                                                                                                                                        year: "numeric",
+                                                                                                                                    })
+                                                                                                                                    : "Report not uploaded";
+                                                                                                                            })()}</p>
+                                                                                                                        </div>
                                                                                                                     </div>
+                                                                                                                    {item?.labAppointment?.status == 'deliver-report' && <div>
+                                                                                                                        <Link to={`/doctor/report-view/${item?.labAppointment?._id}/${t?._id}`} className="thm-btn thm-outline-btn rounded-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download</Link>
+                                                                                                                    </div>}
                                                                                                                 </div>
-
-                                                                                                                <div>
-                                                                                                                    <a href="javascript:void(0)" className="thm-btn thm-outline-btn rounded-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download</a>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
+                                                                                                            </div>)}
                                                                                                     </div>}
-
                                                                                                 </div>
-
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -622,10 +666,7 @@ function DoctorDetailsView() {
                                                                         })}
 
                                                                 </div>
-
-
                                                             </div>
-
 
                                                         </div>
 
@@ -783,7 +824,7 @@ function DoctorDetailsView() {
 
                                                                                                     <div className="d-flex align-items-center gap-2">
                                                                                                         <button className="card-sw-btn" ><FontAwesomeIcon icon={faPrint} /></button>
-                                                                                                        <button onClick={() => setPastPresData(item?.prescriptionId)} className="card-sw-btn" data-bs-toggle="modal" data-bs-target="#prescription-Modal"><FontAwesomeIcon icon={faEye} /></button>
+                                                                                                        <button onClick={() => setPastPresData(item?.prescriptionId)} className="card-sw-btn" ><FontAwesomeIcon icon={faEye} /></button>
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
@@ -822,209 +863,81 @@ function DoctorDetailsView() {
                                                             <div className="all-profile-data-bx">
                                                                 <div className="">
                                                                     <div className="row">
-                                                                        <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                                                                            <div className="qrcode-prescriptions-bx">
-                                                                                <div className="admin-table-bx d-flex align-items-center justify-content-between qr-cd-headr">
-                                                                                    <div className="admin-table-sub-details final-reprt d-flex align-items-center gap-2">
-                                                                                        <img src="/reprt-plus.png" alt="" className="rounded-0" />
-                                                                                        <div>
-                                                                                            <h6 className="fs-16 fw-600 text-black">Final Diagnostic Report</h6>
-                                                                                            <p className="fs-14 fw-500">RE-89767</p>
+                                                                        {labReports?.length > 0 &&
+                                                                            labReports?.map((item, key) =>
+                                                                                <div className="col-lg-4 col-md-6 col-sm-12 mb-3" key={key}>
+                                                                                    <div className="qrcode-prescriptions-bx">
+                                                                                        <div className="admin-table-bx d-flex align-items-center justify-content-between qr-cd-headr">
+                                                                                            <div className="admin-table-sub-details final-reprt d-flex align-items-center gap-2">
+                                                                                                <img src="/reprt-plus.png" alt="" className="rounded-0" />
+                                                                                                <div>
+                                                                                                    <h6 className="fs-16 fw-600 text-black">Final Diagnostic Report</h6>
+                                                                                                    <p className="fs-14 fw-500">RE-89767</p>
 
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                                <div className="barcode-active-bx">
-                                                                                    <div className="mb-2">
-                                                                                        <div className="admin-table-sub-details d-flex align-items-center justify-content-between doctor-title ">
-                                                                                            <div>
-                                                                                                <h6>Advance Lab Tech</h6>
-                                                                                                <p className="fs-14 fw-500">DO-4001</p>
-                                                                                            </div>
-                                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                                <button className="card-sw-btn"><FontAwesomeIcon icon={faPrint} /></button>
-                                                                                                <button className="card-sw-btn" data-bs-toggle="modal" data-bs-target="#prescription-Modal"><FontAwesomeIcon icon={faEye} /></button>
+                                                                                                </div>
                                                                                             </div>
 
                                                                                         </div>
 
-                                                                                    </div>
+                                                                                        <div className="barcode-active-bx">
+                                                                                            <div className="mb-2">
+                                                                                                <div className="admin-table-sub-details d-flex align-items-center justify-content-between doctor-title ">
+                                                                                                    <div>
+                                                                                                        <h6>{item?.labId?.name}</h6>
+                                                                                                        <p className="fs-14 fw-500">{item?.labId?.unique_id}</p>
+                                                                                                    </div>
+                                                                                                    <div className="d-flex align-items-center gap-2">
+                                                                                                        <button className="card-sw-btn"><FontAwesomeIcon icon={faPrint} /></button>
+                                                                                                        <Link to={`/doctor/report-view/${item?.appointmentId?._id}/${item?.testId?._id}`} className="card-sw-btn" ><FontAwesomeIcon icon={faEye} /></Link>
+                                                                                                    </div>
 
+                                                                                                </div>
 
-                                                                                    <div className="barcd-scannr barcde-scnnr-card">
-                                                                                        <div className="barcd-content">
-                                                                                            <h4 className="mb-1">SP-9879</h4>
-
-                                                                                            <ul class="qrcode-list">
-                                                                                                <li class="qrcode-item">Test  <span class="qrcode-title">: CBC</span></li>
-                                                                                                <li class="qrcode-item">Draw  <span class="qrcode-title"> : 25-11-03  08:07</span> </li>
-                                                                                            </ul>
-
-                                                                                            <img src="/barcode.png" alt="" />
-                                                                                        </div>
-
-                                                                                        <div className="barcode-id-details">
-                                                                                            <div>
-                                                                                                <h6>Patient Id </h6>
-                                                                                                <p>PS-9001</p>
                                                                                             </div>
 
 
-                                                                                            <div>
-                                                                                                <h6>Appointment ID </h6>
-                                                                                                <p>OID-8876</p>
+                                                                                            <div className="barcd-scannr barcde-scnnr-card">
+                                                                                                <div className="barcd-content">
+                                                                                                    <h4 className="mb-1">SP-{item?._id?.slice(-4)}</h4>
+
+                                                                                                    <ul class="qrcode-list">
+                                                                                                        <li class="qrcode-item">Test  <span class="qrcode-title">: {item?.testId?.shortName}</span></li>
+                                                                                                        <li class="qrcode-item">Draw  <span class="qrcode-title"> : {new Date(item?.createdAt)?.toLocaleString()}</span> </li>
+                                                                                                    </ul>
+
+                                                                                                    <img src="/barcode.png" alt="" />
+                                                                                                </div>
+
+                                                                                                <div className="barcode-id-details">
+                                                                                                    <div>
+                                                                                                        <h6>Patient Id </h6>
+                                                                                                        <p>PS-{appointmentData?.patientId?.unique_id}</p>
+                                                                                                    </div>
+
+
+                                                                                                    <div>
+                                                                                                        <h6>Appointment ID </h6>
+                                                                                                        <p>{item?.appointmentId?.customId}</p>
+                                                                                                    </div>
+                                                                                                </div>
+
                                                                                             </div>
-                                                                                        </div>
 
-                                                                                    </div>
+                                                                                            <div className="text-center mt-3">
+                                                                                                <button
+                                                                                                    disabled={pdfLoading !== null}
+                                                                                                    onClick={() =>
+                                                                                                        handleReportDownload(item?.appointmentId?._id, item?.testId?._id, item?._id)
+                                                                                                    }
+                                                                                                    className="pdf-download-tbn py-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} />
+                                                                                                    {pdfLoading == item?._id ? 'Downloading' : 'Download'}</button>
 
-                                                                                    <div className="text-center mt-3">
-                                                                                        <button className="pdf-download-tbn py-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download Report</button>
-
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                                                                            <div className="qrcode-prescriptions-bx">
-                                                                                <div className="admin-table-bx d-flex align-items-center justify-content-between qr-cd-headr">
-                                                                                    <div className="admin-table-sub-details final-reprt d-flex align-items-center gap-2">
-                                                                                        <img src="/reprt-plus.png" alt="" className="rounded-0" />
-                                                                                        <div>
-                                                                                            <h6 className="fs-16 fw-600 text-black">Final Diagnostic Report</h6>
-                                                                                            <p className="fs-14 fw-500">RE-89767</p>
-
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                                <div className="barcode-active-bx">
-                                                                                    <div className="mb-2">
-                                                                                        <div className="admin-table-sub-details d-flex align-items-center justify-content-between doctor-title ">
-                                                                                            <div>
-                                                                                                <h6>Advance Lab Tech</h6>
-                                                                                                <p className="fs-14 fw-500">DO-4001</p>
-                                                                                            </div>
-                                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                                <button className="card-sw-btn"><FontAwesomeIcon icon={faPrint} /></button>
-                                                                                                <button className="card-sw-btn" data-bs-toggle="modal" data-bs-target="#prescription-Modal"><FontAwesomeIcon icon={faEye} /></button>
                                                                                             </div>
 
                                                                                         </div>
 
                                                                                     </div>
-
-
-                                                                                    <div className="barcd-scannr barcde-scnnr-card">
-                                                                                        <div className="barcd-content">
-                                                                                            <h4 className="mb-1">SP-9879</h4>
-
-                                                                                            <ul class="qrcode-list">
-                                                                                                <li class="qrcode-item">Test  <span class="qrcode-title">: CBC</span></li>
-                                                                                                <li class="qrcode-item">Draw  <span class="qrcode-title"> : 25-11-03  08:07</span> </li>
-                                                                                            </ul>
-
-                                                                                            <img src="/barcode.png" alt="" />
-                                                                                        </div>
-
-                                                                                        <div className="barcode-id-details">
-                                                                                            <div>
-                                                                                                <h6>Patient Id </h6>
-                                                                                                <p>PS-9001</p>
-                                                                                            </div>
-
-
-                                                                                            <div>
-                                                                                                <h6>Appointment ID </h6>
-                                                                                                <p>OID-8876</p>
-                                                                                            </div>
-                                                                                        </div>
-
-                                                                                    </div>
-
-                                                                                    <div className="text-center mt-3">
-                                                                                        <button className="pdf-download-tbn py-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download Report</button>
-
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="col-lg-4 col-md-6 col-sm-12 mb-3">
-                                                                            <div className="qrcode-prescriptions-bx">
-                                                                                <div className="admin-table-bx d-flex align-items-center justify-content-between qr-cd-headr">
-                                                                                    <div className="admin-table-sub-details final-reprt d-flex align-items-center gap-2">
-                                                                                        <img src="/reprt-plus.png" alt="" className="rounded-0" />
-                                                                                        <div>
-                                                                                            <h6 className="fs-16 fw-600 text-black">Final Diagnostic Report</h6>
-                                                                                            <p className="fs-14 fw-500">RE-89767</p>
-
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                                <div className="barcode-active-bx">
-                                                                                    <div className="mb-2">
-                                                                                        <div className="admin-table-sub-details d-flex align-items-center justify-content-between doctor-title ">
-                                                                                            <div>
-                                                                                                <h6>Advance Lab Tech</h6>
-                                                                                                <p className="fs-14 fw-500">DO-4001</p>
-                                                                                            </div>
-                                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                                <button className="card-sw-btn"><FontAwesomeIcon icon={faPrint} /></button>
-                                                                                                <button className="card-sw-btn" data-bs-toggle="modal" data-bs-target="#prescription-Modal"><FontAwesomeIcon icon={faEye} /></button>
-                                                                                            </div>
-
-                                                                                        </div>
-
-                                                                                    </div>
-
-
-                                                                                    <div className="barcd-scannr barcde-scnnr-card">
-                                                                                        <div className="barcd-content">
-                                                                                            <h4 className="mb-1">SP-9879</h4>
-
-                                                                                            <ul class="qrcode-list">
-                                                                                                <li class="qrcode-item">Test  <span class="qrcode-title">: CBC</span></li>
-                                                                                                <li class="qrcode-item">Draw  <span class="qrcode-title"> : 25-11-03  08:07</span> </li>
-                                                                                            </ul>
-
-                                                                                            <img src="/barcode.png" alt="" />
-                                                                                        </div>
-
-                                                                                        <div className="barcode-id-details">
-                                                                                            <div>
-                                                                                                <h6>Patient Id </h6>
-                                                                                                <p>PS-9001</p>
-                                                                                            </div>
-
-
-                                                                                            <div>
-                                                                                                <h6>Appointment ID </h6>
-                                                                                                <p>OID-8876</p>
-                                                                                            </div>
-                                                                                        </div>
-
-                                                                                    </div>
-
-                                                                                    <div className="text-center mt-3">
-                                                                                        <button className="pdf-download-tbn py-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download Report</button>
-
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
+                                                                                </div>)}
 
                                                                     </div>
                                                                 </div>
@@ -1205,6 +1118,14 @@ function DoctorDetailsView() {
                 </div>
             </div>
             {/* <!-- Add Lab Test Popup End --> */}
+            {(showDownload && selectedReport) && <div className="d-none">
+                <ReportDownload
+                    appointmentId={selectedReport?.appointmentId}
+                    currentTest={selectedReport?.testId}
+                    endLoading={() => setPdfLoading(null)}
+                    pdfLoading={pdfLoading}
+                />
+            </div>}
 
         </>
     )

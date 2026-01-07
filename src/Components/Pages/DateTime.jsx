@@ -222,7 +222,7 @@ function DateTime() {
                       </div>
                       <div className="doctor-details">
                         <h4 className="innr-title fz-700">Dr.{doctorData?.name}</h4>
-                        <h5>{doctorAbout?.specialty} | {doctorAbout?.hospitalName}</h5>
+                        <h5>{doctorAbout?.specialty} | {doctorAbout?.hospitalName?.name}</h5>
                         <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                       </div>
                     </div>

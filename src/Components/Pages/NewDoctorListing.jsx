@@ -453,7 +453,7 @@ function NewDoctorListing() {
                             <div className="my-2">
                               <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating?.toFixed(0)} </span>
                             </div>
-                            <h6 className="nw-hospital-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName}</h6>
+                            <h6 className="nw-hospital-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName?.name}</h6>
                             <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
                               <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
                               <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAddress?.cityId?.name + ', ' + item?.doctorAddress?.stateId?.name}</p>

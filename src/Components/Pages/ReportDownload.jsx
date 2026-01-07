@@ -22,6 +22,7 @@ function ReportDownload({ appointmentId, currentTest, endLoading, pdfLoading }) 
     const [appointmentData, setAppointmentData] = useState({})
     const fetchAppointmentData = async () => {
         try {
+            console.log(appointmentId)
             const response = await getSecureApiData(`lab/appointment-data/${appointmentId}`)
             if (response.success) {
                 setTestId(response.data.testId)

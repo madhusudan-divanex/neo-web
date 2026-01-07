@@ -100,7 +100,7 @@ function Prescriptions() {
                                                                                         : "/doctor-timing.png"} alt="" />
                                                                                     <div>
                                                                                         <h6 className="">Dr. {item?.doctor?.name} </h6>
-                                                                                        <p>{item?.doctorAbout?.specialty} | {item?.doctorAbout?.hospitalName}</p>
+                                                                                        <p>{item?.doctorAbout?.specialty} | {item?.doctorAbout?.hospitalName?.name}</p>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

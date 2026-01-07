@@ -147,7 +147,7 @@ function MyAppointment() {
                                                                                         <div className="appoint-left-title-bx">
                                                                                             <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> {formatDateTime(item?.date)}  </h5>
                                                                                         </div>
-                                                                                        {new Date() < item?.date &&
+                                                                                        {new Date() < new Date(item?.date) &&
                                                                                             <div className="appoint-right-title-bx">
                                                                                                 <span className="nw-result-bx">Upcoming</span>
                                                                                             </div>}
@@ -170,7 +170,7 @@ function MyAppointment() {
                                                                                                 `${base_url}/${item?.doctorId?.doctorId?.profileImage}` : "/lab-pic.png"} alt="" />
                                                                                             <div className="appointment-info-details">
                                                                                                 <h4 className="">{item?.doctorId?.name}</h4>
-                                                                                                <h6 className="nw-appointment-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName}</h6>
+                                                                                                <h6 className="nw-appointment-title">{item?.doctorAddress?.specialty} <span className="slash-title" >|</span> {item?.doctorAddress?.hospitalName?.name}</h6>
                                                                                                 <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAddress?.cityId?.name + ", " +
                                                                                                     item?.doctorAddress?.stateId?.name}</p>
                                                                                             </div>
@@ -215,7 +215,7 @@ function MyAppointment() {
                                                                                             <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon">
                                                                                                 <FontAwesomeIcon icon={faCalendar} /></span> {formatDateTime(item?.date)} </h5>
                                                                                         </div>
-                                                                                        {new Date() < item?.date &&
+                                                                                        {(new Date() < new Date(item?.date) && item?.status!=='deliver-report') &&
                                                                                             <div className="appoint-right-title-bx">
                                                                                                 <span className="nw-result-bx">Upcoming</span>
                                                                                             </div>}
