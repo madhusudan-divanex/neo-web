@@ -2,10 +2,89 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProfileSidebar from "./ProfileSidebar"
 import { BsPlusCircleFill } from "react-icons/bs";
+import { useEffect, useState } from "react";
+import Select from 'react-select'
+import { getSecureApiData, securePostData } from "../../Services/api";
+import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDoctorDetail } from "../../Redux/features/doctor";
+import { useNavigate } from "react-router-dom";
 
 function AddAppointment() {
-  return (
-     <>
+    const dispath=useDispatch()
+    const navigate=useNavigate()
+    const [users, setUsers] = useState()
+    const doctorId = localStorage.getItem('userId')
+    const [loading, setLoading] = useState(false)
+    const [patientId, setPatientId] = useState()
+    const [date, setDate] = useState()
+    const [time, setTime] = useState()
+    const {aboutDoctor}=useSelector(state=>state.doctor)
+    async function fetchPendingRequest() {
+        setLoading(true)
+        try {
+            const result = await getSecureApiData(`patient/all?limit=100000`)
+            if (result.success) {
+                const formattedOptions = result.data.map(user => ({
+                    value: user._id,   // or user._id depending on your data
+                    label: user.name, // display name
+                }));
+                setUsers(formattedOptions)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
+    useEffect(() => {
+        fetchPendingRequest()
+    }, [])
+    const handleBook = async (e) => {
+        e.preventDefault();
+
+        if (!patientId || !date || !time) {
+            toast.error("Please fill all fields");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Combine date + time into Date object
+            const appointmentDate = new Date(`${date}T${time}`);
+
+            const data = {
+                patientId,
+                doctorId,
+                date: appointmentDate, 
+                fees:aboutDoctor?.fees
+            };
+
+            const response = await securePostData("appointment/doctor", data);
+
+            if (response?.success) {
+                toast.success("Appointment add successfully!");
+                // reset form if needed
+                setPatientId("");
+                setDate("");
+                setTime("");
+                navigate('/doctor/requests')
+            } else {
+                toast.error(response?.message || "Booking failed");
+            }
+        } catch (error) {
+            console.error("Booking error:", error);
+            toast.error("Something went wrong");
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(()=>{
+        dispath(fetchDoctorDetail())
+    },[dispath])
+    return (
+        <>
             <section className="new-profile-section">
                 <div className="container">
                     <div className="row">
@@ -19,7 +98,7 @@ function AddAppointment() {
                                     <h5 className="heading-grad fz-24 mb-0"> Add Appointment</h5>
                                 </div>
                                 <div className="all-profile-data-bx">
-                                    <form action="">
+                                    <form onSubmit={handleBook}>
                                         <div className="new-panel-card mb-3">
                                             <div className="row">
                                                 <div>
@@ -29,7 +108,9 @@ function AddAppointment() {
                                                 <div className="col-lg-6 col-md-6 col-sm-12">
                                                     <div className="custom-frm-bx">
                                                         <label htmlFor="">Appointment Date</label>
-                                                        <input type="date" className="form-control new-control-frm" placeholder="" />
+                                                        <input type="date"
+                                                            value={date} onChange={(e) => setDate(e.target.value)}
+                                                            className="form-control new-control-frm" placeholder="" />
 
                                                     </div>
                                                 </div>
@@ -37,7 +118,9 @@ function AddAppointment() {
                                                 <div className="col-lg-6 col-md-6 col-sm-12">
                                                     <div className="custom-frm-bx">
                                                         <label htmlFor="">Appointment Time</label>
-                                                        <input type="time" className="form-control new-control-frm" placeholder="" />
+                                                        <input type="time"
+                                                            value={time} onChange={(e) => setTime(e.target.value)}
+                                                            className="form-control new-control-frm" placeholder="" />
 
                                                     </div>
                                                 </div>
@@ -64,12 +147,17 @@ function AddAppointment() {
                                                 <div className="col-lg-12 col-md-12 col-sm-12">
                                                     <div className="custom-frm-bx">
                                                         <label>Patient</label>
-                                                        <div className="field custom-frm-bx mb-0 custom-select nw-custom-select">
-                                                            <select className="nw-select">
-                                                                <option selected>---Select Patient ---</option>
-                                                                <option>Female</option>
-                                                                <option>Other</option>
-                                                            </select>
+                                                        <div className="select-wrapper">
+
+                                                            <Select
+                                                                options={users}
+                                                                name="patientId"
+                                                                classNamePrefix="custom-select"
+                                                                placeholder="Select patient"
+                                                                onChange={(selectedOption) => {
+                                                                    setPatientId(selectedOption.value);
+                                                                }}
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -97,7 +185,7 @@ function AddAppointment() {
 
             </section>
         </>
-  )
+    )
 }
 
 export default AddAppointment

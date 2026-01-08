@@ -237,7 +237,7 @@ function AppointmentDetailsCompleted() {
                                                             <h5 className="fz-16 fw-700 mb-0 text-black"> <span className="cal-icon"><FontAwesomeIcon icon={faCalendar} /></span> {formatDateTime(appointmentData?.date)} </h5>
                                                         </div>
                                                         <div className="appoint-right-title-bx">
-                                                            {new Date() < new Date(appointmentData?.date) &&
+                                                            {(appointmentData?.status !== 'pending' &&new Date() < new Date(appointmentData?.date)) &&
                                                                 <div className="appoint-right-title-bx">
                                                                     <span className="nw-result-bx">Upcoming</span>
                                                                 </div>}
@@ -268,7 +268,7 @@ function AppointmentDetailsCompleted() {
                                                                 : "/doctor-timing.png"} alt="" />
                                                             <div className="appointment-info-details">
                                                                 <h4 className="">Dr.{appointmentData?.doctorId?.name}</h4>
-                                                                <h6 className="nw-appointment-title">{doctorAddress?.specialty} <span className="slash-title" >|</span> {doctorAddress?.hospitalName?.name}</h6>
+                                                                <h6 className="nw-appointment-title">{doctorAddress?.specialty} <span className="slash-title" >|</span> {doctorAddress?.hospitalName?.hospitalName}</h6>
                                                                 <p className=""><FontAwesomeIcon icon={faLocationDot} />{doctorAddress?.cityId?.name + ', ' + doctorAddress?.stateId?.name}</p>
                                                             </div>
                                                         </div>
@@ -347,7 +347,7 @@ function AppointmentDetailsCompleted() {
                                                 </div>
                                             </div>}
 
-                                            {appointmentData?.labTest && <div className="col-lg-6 mb-3">
+                                            {appointmentData?.labTest?.lab && <div className="col-lg-6 mb-3">
                                                 <div className="appointment-booking-detail-bx">
                                                     <div className="booking-details-tp-title">
                                                         <h5>Doctor tests prescribed by the doctor</h5>
@@ -448,7 +448,9 @@ function AppointmentDetailsCompleted() {
                                             </div>}
                                             {appointmentData?.status == 'pending' && <div className="text-end">
                                                 <button className="nw-danger-outline-btn me-3" data-bs-toggle="modal" data-bs-target="#cancel-Modal">Cancel</button>
-                                                <button className="nw-thm-btn">Reschedule</button>
+                                                <Link to={`/book-doctor-appointment/${appointmentData?.doctorId?.name}/${appointmentData?.doctorId?._id}`}
+                                                onClick={()=>sessionStorage.setItem('aptData',JSON.stringify(appointmentData))}
+                                                 className="nw-thm-btn">Reschedule</Link>
                                             </div>}
                                             {appointmentData?.status == 'completed' &&
                                                 <div className="mt-3 text-end d-flex align-items-center justify-content-end gap-2">

@@ -4,7 +4,11 @@ import RatingSlider from "./RatingSlider"
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
 import "@splidejs/splide/dist/css/splide.min.css";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { getApiData, getSecureApiData, securePostData } from "../../Services/api";
+import { toast } from "react-toastify";
+import base_url, { client_url } from "../../baseUrl";
 
 
 function HospitalDetails() {
@@ -18,8 +22,119 @@ function HospitalDetails() {
     const prevSlide = () => {
         splideRef.current.splide.go("<");
     };
+    const params = useParams()
+    const navigate = useNavigate()
+    const userId = localStorage.getItem('userId')
+    const [isFull, setIsFull] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [hospitalCertificate, setHospitalCertificate] = useState([])
+    const [hospitalData, setHospitalData] = useState()
+    const [hospitalAddress, setHospitalAddress] = useState()
+    const [hospitalImage, setHospitalImage] = useState()
+    const [avgRating, setAvgRating] = useState(0)
+    const [ratings, setRatings] = useState([])
+    const [favIds, setFavIds] = useState([])
+    const [hospitalDoctors, setHospitalDoctors] = useState([])
+    const [selectedTest, setSelectedTest] = useState([])
+    async function fetchHospitalData() {
+        setLoading(true)
+        try {
+            const result = await getApiData(`api/hospital/profile-data/${params.id}`)
+            if (result.success) {
+                setRatings(result.rating)
+                const cert = result.profile.certificates?.filter(c => c.certificateType == 'accreditation')
+                setHospitalCertificate(cert)
+                setAvgRating(result.avgRating)
+                setHospitalData(result.profile.basic)
+                setHospitalImage(result.profile.images.thumbnail[0])
+                setHospitalAddress(result.profile.address)
+            }
+        } catch (error) {
 
+        } finally {
+            setLoading(false)
+        }
+    }
+    async function fetchFavData() {
+        if (!userId) {
+            return
+        }
+        const result = await getSecureApiData(`patient/favorite/${userId}?limit=1000000`)
+        if (result.success) {
+            setFavIds(result.data)
+        }
+    }
+    async function fetchHospitalDoctors() {
+        if (!userId) {
+            return
+        }
+        const result = await getApiData(`api/hospital/doctor/${params.id}?limit=1000000`)
+        if (result.success) {
+            setHospitalDoctors(result.data)
+        }
+    }
 
+    useEffect(() => {
+        fetchHospitalData()
+        fetchHospitalDoctors()
+    }, [params])
+    useEffect(() => {
+        fetchFavData()
+    }, [userId])
+    const handleFavorite = async (id) => {
+        const data = { userId, doctorId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
+    const hospitalFavorite = async () => {
+        const data = { userId, hospitalId: params.id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
+    const handleCopy = () => {
+        const text = `${client_url}/hospital-details/${params?.name}/${params.id}`;
+        if (navigator.clipboard && window.isSecureContext) {
+            // Modern clipboard API
+            navigator.clipboard
+                .writeText(text)
+                .then(() => toast.success("Copied to clipboard!"))
+                .catch(() => toast.error("Copy failed"));
+        } else {
+            // Fallback for HTTP / older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand("copy");
+                toast.success("Copied to clipboard!");
+            } catch (err) {
+                toast.error("Copy failed");
+            }
+            document.body.removeChild(textArea);
+        }
+    };
 
     return (
         <>
@@ -28,7 +143,8 @@ function HospitalDetails() {
                     <div className="row">
                         <div className="col-lg-12 px-0">
                             <div className="hospital-picture-bx">
-                                <img src="/hospital-detail-pic.png" alt="" />
+                                <img src={hospitalImage?.url ? hospitalImage?.url
+                                    : "/hospital-detail-pic.png"} alt="" />
                             </div>
                         </div>
                     </div>
@@ -41,48 +157,65 @@ function HospitalDetails() {
                                 <div className="doctor-details my-3">
                                     <div className="d-flex align-items-start justify-content-between">
                                         <div>
-                                            <h4 className="heading-grad mb-0 fz-40">Mercy Hospital</h4>
+                                            <h4 className="heading-grad mb-0 fz-40">{hospitalData?.hospitalName}</h4>
                                             <div className="my-3">
-                                                <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                <span className="hospital-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
                                             </div>
-                                            <p className="mb-0"><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                            <p className="mb-0"><FontAwesomeIcon icon={faLocationDot} /> {hospitalAddress?.fullAddress}</p>
                                         </div>
                                         <div className="d-flex gap-3">
-                                            <a href="javascript:void(0)" className="heart-btn"><i className="fa-regular fa-heart"></i></a>
-                                            <a href="javascript:void(0)" className="heart-btn"><i className="fas fa-share-alt"></i></a>
+                                            <button className="heart-btn" onClick={() => hospitalFavorite()}>
+                                                {favIds?.some(fav => fav?.hospitalId === params?.id) ?
+                                                    <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                                                    : <i className="fa-regular fa-heart"></i>}</button>
+                                            <button className="heart-btn" onClick={handleCopy}><i className="fas fa-share-alt"></i></button>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="about-me">
                                     <h2>About Me</h2>
-                                    <p className="new_para about-para">“Highly motivated and experienced doctor with a passion for providing excellent care to patients. Experienced in a wide variety of medical settings, with particular expertise in diagnostics, primary care and emergency medicine. Skilled in using the latest technology to streamline patient care. Committed to delivering compassionate, personalized care to each and every patient.” <a href="#" className="more-btn">Read More</a> </p>
+                                    <p className="new_para about-para">
+                                        {hospitalData?.about?.length > 150
+                                            ? isFull
+                                                ? hospitalData.about
+                                                : hospitalData.about.slice(0, 150)
+                                            : hospitalData?.about}
+
+                                        <br />
+
+                                        {hospitalData?.about?.length > 150 && (
+                                            <button
+                                                className="more-btn"
+                                                onClick={() => setIsFull(!isFull)}
+                                            >
+                                                {isFull ? 'Read Less' : 'Read More'}
+                                            </button>
+                                        )}
+                                    </p>
+
                                 </div>
-
-
                                 <div className="about-me specialty-bx my-3">
                                     <h2>Specialty</h2>
                                     <ul className="specialty-list">
-                                        <li className="specialty-item"> <span className="specialty-title">  Psychologists</span></li>
-
+                                        {hospitalDoctors?.map((item, key) =>
+                                            <li className="specialty-item" key={key}> <span className="specialty-title">  {item?.specialty}</span></li>)}
                                     </ul>
                                 </div>
-
                                 <div className="about-me specialty-bx my-3">
                                     <h2>Treatment Areas</h2>
                                     <ul className="specialty-list">
-                                        <li className="specialty-item"> <span className="specialty-title"> Cosmetic Surgery</span></li>
-                                        <li className="specialty-item"> <span className="specialty-title"> Neurology</span></li>
-                                        <li className="specialty-item"> <span className="specialty-title"> General Surgery</span></li>
+                                        {hospitalDoctors?.map((item, key) =>
+                                            item?.treatmentAreas.map(t =>
+                                                <li className="specialty-item" key={key}> <span className="specialty-title">  {t}</span></li>))}
+
                                     </ul>
                                 </div>
 
                                 <div className="about-me specialty-bx my-3">
                                     <h2>Accreditation</h2>
                                     <ul className="specialty-list">
-                                        <li className="specialty-item"> <span className="specialty-title">NABH</span></li>
-                                        <li className="specialty-item"> <span className="specialty-title"> ISO Certified</span></li>
-                                        <li className="specialty-item"> <span className="specialty-title"> General Surgery</span></li>
+                                        {hospitalCertificate?.map((item, key) =>
+                                            <li className="specialty-item" key={key}> <span className="specialty-title"> {item?.licenseNumber}</span></li>)}
                                     </ul>
                                 </div>
                             </div>
@@ -129,101 +262,42 @@ function HospitalDetails() {
                                 }}
                             >
 
-                                <SplideSlide className="py-3">
-                                    <div className="favorite-docotr-card position-relative">
-                                        <div className="favorite-doctor-picture text-center">
-                                            <img src="/date-time-img.png" alt="" />
-                                            <div className="favorite-doctor-details">
-                                                <h4 className="">Dr.James Harris</h4>
-                                                <div className="my-2">
-                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                </div>
-                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                                                    <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                </div>
-                                                <div className="d-flex justify-content-between mt-3">
-
-                                                    <div className="text-start">
-                                                        <span className="fees-title">Fees :</span>
-                                                        <h5 className="ammount-title fw-700"> $ 22.00</h5>
+                                {hospitalDoctors?.map((item, key) =>
+                                    <SplideSlide className="py-3" key={key}>
+                                        <div className="favorite-docotr-card position-relative">
+                                            <div className="favorite-doctor-picture text-center">
+                                                <img src={item?.user?.profileImage ? `${base_url}/${item?.user?.profileImage}`
+                                                    : "/date-time-img.png"} alt="" />
+                                                <div className="favorite-doctor-details">
+                                                    <h4 className="">Dr.{item?.user?.name}</h4>
+                                                    <div className="my-2">
+                                                        <span className="hospital-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating} </span>
                                                     </div>
-                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                </div>
+                                                    <h6 className="nw-hospital-title">{item?.specialty} <span className="slash-title" >|</span> {item?.hospitalName?.hospitalName}</h6>
+                                                    <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
+                                                        <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
+                                                        <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.fullAddress}</p>
+                                                    </div>
+                                                    <div className="d-flex justify-content-between mt-3">
 
-                                                <div className="doctor-heart-bx">
-                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                </div>
+                                                        <div className="text-start">
+                                                            <span className="fees-title">Fees :</span>
+                                                            <h5 className="ammount-title fw-700"> $ {item?.fees}</h5>
+                                                        </div>
+                                                        <Link to={`/book-doctor-appointment/${item?.name}/${item?.userId}`} className="nw-thm-btn">Book Appointment</Link>
+                                                    </div>
 
+                                                    <div className="doctor-heart-bx">
+                                                        <button className="heart-btn" onClick={() => handleFavorite(item?.userId)}>
+                                                            {favIds?.some(fav => fav?.doctorId === item?.userId) ?
+                                                                <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                                                                : <i className="fa-regular fa-heart"></i>}</button>
+                                                    </div>
+
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </SplideSlide>
-
-                                <SplideSlide className="py-3">
-                                    <div className="favorite-docotr-card position-relative">
-                                        <div className="favorite-doctor-picture text-center">
-                                            <img src="/date-time-img.png" alt="" />
-                                            <div className="favorite-doctor-details">
-                                                <h4 className="">Dr.James Harris</h4>
-                                                <div className="my-2">
-                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                </div>
-                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                                                    <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                </div>
-                                                <div className="d-flex justify-content-between mt-3">
-
-                                                    <div className="text-start">
-                                                        <span className="fees-title">Fees :</span>
-                                                        <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                                                    </div>
-                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                </div>
-
-                                                <div className="doctor-heart-bx">
-                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </SplideSlide>
-
-                                <SplideSlide className="py-3">
-                                    <div className="favorite-docotr-card position-relative">
-                                        <div className="favorite-doctor-picture text-center">
-                                            <img src="/date-time-img.png" alt="" />
-                                            <div className="favorite-doctor-details">
-                                                <h4 className="">Dr.James Harris</h4>
-                                                <div className="my-2">
-                                                    <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                </div>
-                                                <h6 className="nw-hospital-title">Psychologists <span className="slash-title" >|</span> Mercy Hospital</h6>
-                                                <div className="d-flex align-items-center justify-content-between flex-wrap my-2">
-                                                    <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
-                                                    <p className=""><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                </div>
-                                                <div className="d-flex justify-content-between mt-3">
-
-                                                    <div className="text-start">
-                                                        <span className="fees-title">Fees :</span>
-                                                        <h5 className="ammount-title fw-700"> $ 22.00</h5>
-                                                    </div>
-                                                    <a href="javascript:void(0)" className="nw-thm-btn">Book Appointment</a>
-                                                </div>
-
-                                                <div className="doctor-heart-bx">
-                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </SplideSlide>
+                                    </SplideSlide>)}
                             </Splide>
 
 

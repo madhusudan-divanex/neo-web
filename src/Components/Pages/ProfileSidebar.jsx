@@ -9,7 +9,7 @@ import base_url from "../../baseUrl"
 function ProfileSidebar() {
     const navigate=useNavigate()
     const dispatch=useDispatch()
-    const { profiles, medicalHistory, demographic, labAppointment, kyc, prescription, isRequest,customId } = useSelector(state => state.patient)
+    const { profiles, medicalHistory, demographic, labAppointment, kyc, prescription, isRequest,customId,allowEdit } = useSelector(state => state.patient)
     useEffect(()=>{
         dispatch(fetchPatientDetail())
     },[dispatch])
@@ -38,13 +38,11 @@ function ProfileSidebar() {
                 <div className="new-item-list">
                     <ul className="nw-profile-list">
                         <li className="nw-profile-item"><Link to='/my-appointment' className="nw-nav-link"> <FontAwesomeIcon icon={faCalendarPlus} className="nw-nav-icon" /> My Appointment </Link></li>
-
                         <li className="nw-profile-item"><Link to='/lab-report' className="nw-nav-link"> <FontAwesomeIcon icon={faFlask} className="nw-nav-icon" /> Lab Report</Link></li>
-
                         <li className="nw-profile-item"><Link to='/prescription' className="nw-nav-link"> <FontAwesomeIcon icon={faFile} className="nw-nav-icon" />Prescriptions</Link></li>
-                        <li className="nw-profile-item"><Link to='/prescription' className="nw-nav-link"> <FontAwesomeIcon icon={faSyringe} className="nw-nav-icon" />Vaccination</Link></li>
+                        {/* <li className="nw-profile-item"><Link to='/prescription' className="nw-nav-link"> <FontAwesomeIcon icon={faSyringe} className="nw-nav-icon" />Vaccination</Link></li> */}
                         <li className="nw-profile-item"><Link to='/ambulance-booking-histroy' className="nw-nav-link"> <FontAwesomeIcon icon={faAmbulance} className="nw-nav-icon" />Ambulance Booking History</Link></li>
-                        <li className="nw-profile-item"><Link to='/profile' className="nw-nav-link"> <FontAwesomeIcon icon={faUserEdit} className="nw-nav-icon" />Profile</Link></li>
+                        <li className="nw-profile-item"><Link to={'/profile'} className="nw-nav-link"> <FontAwesomeIcon icon={faUserEdit} className="nw-nav-icon" />Profile</Link></li>
 
                         <li className="nw-profile-item"><Link to='/health-card-details' className="nw-nav-link"> <FontAwesomeIcon icon={faCreditCard} className="nw-nav-icon" />My NeoHealthCard</Link></li>
                         <li className="nw-profile-item"><Link to='/share-health-card' className="nw-nav-link"> <FontAwesomeIcon icon={faShareAlt} className="nw-nav-icon" />Share NeoHealthCard</Link></li>

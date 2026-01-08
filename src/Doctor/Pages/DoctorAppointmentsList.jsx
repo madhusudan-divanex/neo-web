@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProfileSidebar from "./ProfileSidebar"
 import { faCheck, faFilter, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { TbGridDots } from "react-icons/tb";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getSecureApiData, updateApiData } from "../../Services/api";
 import { useEffect, useState } from "react";
 import { formatDateTime } from "../../Services/globalFunction";
@@ -11,6 +11,7 @@ import Loader from "../../Loader/Loader";
 import { toast } from "react-toastify";
 
 function DoctorAppointmentsList() {
+    const navigate =useNavigate()
     const userId = localStorage.getItem('userId')
     const [appointmentRequest, setAppintmentRequest] = useState([])
     const [loading, setLoading] = useState(false)
@@ -73,7 +74,17 @@ function DoctorAppointmentsList() {
             setLoading(false)
         }
     }
-
+    const startChatWithUser = async (user) => {
+        // create or get conversation
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
+        navigate('/doctor/chat')
+    };
+    const startCallWithUser = async (user) => {
+        // create or get conversation
+        sessionStorage.setItem('videoCall', "true")
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
+        navigate('/doctor/chat')
+    };
 
     return (
         <>
@@ -268,12 +279,12 @@ function DoctorAppointmentsList() {
                                                                                                 </NavLink>
                                                                                             </li>
                                                                                             <li className="prescription-item">
-                                                                                                <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
+                                                                                                <NavLink onClick={()=>startChatWithUser(item)} className="prescription-nav" >
                                                                                                     Chat Now
                                                                                                 </NavLink>
                                                                                             </li>
                                                                                             <li className="prescription-item">
-                                                                                                <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
+                                                                                                <NavLink onClick={()=>startCallWithUser(item)} className="prescription-nav" href="#" >
                                                                                                     Video Call
                                                                                                 </NavLink>
                                                                                             </li>

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { toast } from "react-toastify";
-import { getApiData, securePostData } from "../../Services/api";
+import { getApiData, securePostData, updateApiData } from "../../Services/api";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import base_url from "../../baseUrl";
 
@@ -17,6 +17,7 @@ function DateTime() {
   const [isFull, setIsFull] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isHide, setIsHide] = useState(true)
+  const aptData = JSON.parse(sessionStorage.getItem('aptData'))
   const [doctorCertificate, setDoctorCertificate] = useState([])
   const [doctorData, setDoctorData] = useState([])
   const [doctorAddress, setDoctorAddress] = useState()
@@ -186,15 +187,24 @@ function DateTime() {
         date: appointmentDate, // Date type
         patientId: userId
       };
-
-      // 6️⃣ Send to backend
-      const response = await securePostData("appointment/doctor", data);
-
-      if (response.success) {
-        toast.success("Appointment booked successfully!");
-        setIsHide(false)
+      if (aptData) {
+        data.appointmentId = aptData?._id
+        const response = await updateApiData("appointment/doctor", data);
+        if (response.success) {
+          sessionStorage.removeItem('aptData')
+          toast.success("Appointment updated successfully!");
+          setIsHide(false)
+        } else {
+          toast.error(response.message || "Booking failed");
+        }
       } else {
-        toast.error(response.message || "Booking failed");
+        const response = await securePostData("appointment/doctor", data);
+        if (response.success) {
+          toast.success("Appointment booked successfully!");
+          setIsHide(false)
+        } else {
+          toast.error(response.message || "Booking failed");
+        }
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -203,6 +213,39 @@ function DateTime() {
       setLoading(false)
     }
   };
+  useEffect(() => {
+    if (!aptData || !dates.length) return;
+    const appointmentDate = new Date(aptData.date);
+
+    /* ---------- DATE MATCH ---------- */
+    const aptDay = appointmentDate.getDate();
+    const aptMonth = appointmentDate.getMonth();
+    const dateIndex = dates.findIndex(d => {
+      const [monthName, day] = d.date.split(" ");
+      const monthIndex = new Date(`${monthName} 1, 2000`).getMonth();
+      return (
+        Number(day) === aptDay &&
+        monthIndex === aptMonth
+      );
+    });
+    if (dateIndex !== -1  && activeIndex===0) {
+      setActiveIndex(dateIndex);
+    }
+
+    /* ---------- TIME MATCH ---------- */
+    let hours = appointmentDate.getHours();
+    const minutes = appointmentDate.getMinutes();
+
+    const meridiem = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+
+    const formattedTime = `${String(hours).padStart(2, "0")}.${String(minutes).padStart(2, "0")} ${meridiem}`;
+
+    if (times.includes(formattedTime)) {
+      setTimeIndex(formattedTime);
+    }
+
+  }, [aptData]);
 
 
   return (
@@ -222,7 +265,7 @@ function DateTime() {
                       </div>
                       <div className="doctor-details">
                         <h4 className="innr-title fz-700">Dr.{doctorData?.name}</h4>
-                        <h5>{doctorAbout?.specialty} | {doctorAbout?.hospitalName?.name}</h5>
+                        <h5>{doctorAbout?.specialty} | {doctorAbout?.hospitalName?.hospitalName}</h5>
                         <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
                       </div>
                     </div>
@@ -304,7 +347,7 @@ function DateTime() {
 
                 <div className="date-time-footer">
                   <div className=' '>
-                    <a href="# " className="nw-thm-btn outline">Back</a>
+                    <Link to={-1} className="nw-thm-btn outline">Back</Link>
                   </div>
                   <div className='d-flex gap-4 '>
                     <div className="doctor-fees-content">

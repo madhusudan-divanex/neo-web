@@ -107,7 +107,7 @@ function ShareHealthCard() {
                                                     </div>
                                                     {/* <div className="qr-code-generate"></div> */}
                                                     <QRCodeCanvas
-                                                        value={customId}
+                                                        value={userId}
                                                         size={256}
                                                         className="qr-code"
                                                         style={{ height: "auto", maxWidth: "100%", width: "20%" }}

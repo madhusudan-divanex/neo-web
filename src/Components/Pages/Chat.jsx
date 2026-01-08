@@ -8,6 +8,7 @@ import { io } from "socket.io-client";
 import AudioWaveform from "../AudioWaveform";
 import base_url from "../../baseUrl";
 import Loader from "../Layouts/Loader";
+import '../../assets/css/chat.css'
 function Chat() {
     const ringtoneRef = useRef(null);
     const hasStartedChat = useRef(false);
@@ -317,6 +318,7 @@ function Chat() {
 
         //Call
         socketRef.current.on("incoming-call", ({ fromUserId, offer, callType }) => {
+            console.log(fromUserId, offer, callType)
             setIncomingCall({ fromUserId, offer });
             setCallType(callType);
         });
@@ -504,7 +506,7 @@ function Chat() {
 
     const startChatWithUser = async (user) => {
         const res = await securePostData("api/chat/create", {
-            userId: sessionStorage.getItem('fromAppointment') ? user.labId?._id : user._id,
+            userId: sessionStorage.getItem('fromAppointment') ? (user.labId?._id || user.doctorId?._id) : user._id,
         });
         const conversation = res.data;
 
@@ -527,6 +529,7 @@ function Chat() {
     };
     useEffect(() => {
         if (!hasStartedChat.current && sessionStorage.getItem('chatUser')) {
+            console.log(JSON.parse(sessionStorage.getItem('chatUser')))
             startChatWithUser(JSON.parse(sessionStorage.getItem('chatUser')));
             hasStartedChat.current = true;
         }
@@ -535,7 +538,7 @@ function Chat() {
             hasStartedCall.current = true;
         }
     }, []);
-
+    console.log("object", incomingCall)
     return (
         <>
             {loading ? <Loader />
@@ -797,7 +800,78 @@ function Chat() {
                             </div>
                         </div>
                     </div>
-                </section>}
+                    {(incomingCall || callActive) && (
+                        <div className="call-modal">
+                            <div className="call-header">
+                                <h4>
+                                    {incomingCall ? "Incoming" : "Ongoing"} {callType} Call
+                                </h4>
+                                {callActive && (
+                                    <span className="call-timer">
+                                        ⏱ {formatTime(callSeconds)}
+                                    </span>
+                                )}
+                                <p>{selectedChat?.participants[0]?.name || "User"}</p>
+                            </div>
+
+                            {/* BODY */}
+                            <div className="call-body">
+                                {callType === "video" ? (
+                                    <>
+                                        <video
+                                            ref={remoteVideoRef}
+                                            autoPlay
+                                            playsInline
+                                            className="remote-video"
+                                        />
+                                        <video
+                                            ref={localVideoRef}
+                                            autoPlay
+                                            muted
+                                            playsInline
+                                            className="local-video"
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="voice-call-ui">
+                                        <img src="/profile.png" className="caller-avatar" />
+                                        <div className="voice-wave"></div>
+                                        <p>{incomingCall ? "Ringing..." : "Call in progress"}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* FOOTER */}
+                            <div className="call-footer">
+                                {incomingCall ? (
+                                    <>
+                                        <button className="btn accept" onClick={acceptCall}>
+                                            Accept
+                                        </button>
+                                        <button className="btn reject" onClick={rejectCall}>
+                                            Reject
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button className="btn end" onClick={endCall}>
+                                        End Call
+                                    </button>
+                                )}
+                            </div>
+
+                            {incomingCall && (
+                                <audio
+                                    ref={ringtoneRef}
+                                    autoPlay
+                                    loop
+                                    src="/ringtone.mp3"
+                                />
+                            )}
+                        </div>
+                    )}
+
+                </section>
+            }
         </>
     )
 }

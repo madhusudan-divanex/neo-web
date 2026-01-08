@@ -6,6 +6,7 @@ import { getSecureApiData } from "../../Services/api"
 import base_url from "../../baseUrl"
 import { calculateAge } from "../../Services/globalFunction"
 import Loader from "../../Loader/Loader"
+import { Link } from "react-router-dom"
 
 function PatientHistory() {
     const userId = localStorage.getItem('userId')
@@ -124,7 +125,7 @@ function PatientHistory() {
                                                                         <td>{calculateAge(item?.patientDemographic?.dob)} Years</td>
                                                                         <td>
                                                                             <div>
-                                                                                <button className="nw-thm-btn">View Details</button>
+                                                                                <Link to={`/doctor/detail-view/${item?.name}/${item?.lastApt?._id}`} className="nw-thm-btn">View Details</Link>
                                                                             </div>
                                                                         </td>
                                                                     </tr>) : (

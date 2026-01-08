@@ -212,7 +212,6 @@ function LabTestDetailsUpcoming() {
                                                                                             })}</p>
                                                                                         </div>
                                                                                     </div>
-
                                                                                     <div>
                                                                                         <a href="javascript:void(0)" className="thm-btn thm-outline-btn rounded-2"><FontAwesomeIcon icon={faFilePdf} style={{ color: "#EF5350" }} /> Download</a>
                                                                                     </div>
@@ -277,8 +276,8 @@ function LabTestDetailsUpcoming() {
                                                         <h5 >Reason of cancellation</h5>
                                                     </div>
                                                     <div className="appointment-listing-bx pb-5">
-                                                         <h6 className="appoint-cancel fw-700">Cancel Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
-                                                    <p>{appointmentData?.cancelMessage}</p>
+                                                        <h6 className="appoint-cancel fw-700">Cancel Date :{formatDateTime(appointmentData?.updatedAt)}</h6>
+                                                        <p>{appointmentData?.cancelMessage}</p>
                                                     </div>
 
                                                 </div>

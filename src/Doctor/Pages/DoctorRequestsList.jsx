@@ -60,6 +60,19 @@ function DoctorRequestsList() {
             setLoading(false)
         }
     }
+
+    const startChatWithUser = async (user) => {
+        // create or get conversation
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
+        navigate('/doctor/chat')
+    };
+    const startCallWithUser = async (user) => {
+        // create or get conversation
+        sessionStorage.setItem('voiceCall', "true")
+        sessionStorage.setItem('fromAppointment', "true")
+        sessionStorage.setItem('chatUser', JSON.stringify(user))
+        navigate('/chat')
+    };
     return (
         <>
             {loading ? <Loader />
@@ -276,7 +289,7 @@ function DoctorRequestsList() {
                                                                                                 </NavLink>
                                                                                             </li>
                                                                                             <li className="prescription-item">
-                                                                                                <NavLink to="/prescription-bar" className="prescription-nav" href="#" >
+                                                                                                <NavLink onClick={()=>startChatWithUser(item)} className="prescription-nav" >
                                                                                                     Chat Now
                                                                                                 </NavLink>
                                                                                             </li>

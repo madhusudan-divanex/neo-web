@@ -50,7 +50,7 @@ function DoctorProfileApproval() {
             const response=await securePostData('patient/profile-action',data)
             if(response.success){
                 toast.success('Profile updated')
-                navigate('/doctor/profile-approval-request')
+                navigate(`/doctor/patient-details/${patientId}`)
             }
         } catch (error) {
             

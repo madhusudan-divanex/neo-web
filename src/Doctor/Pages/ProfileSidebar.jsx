@@ -3,26 +3,29 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { BiScan } from "react-icons/bi";
 import "../Css/style.css"
 import DoctorScanner from "./DoctorScanner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { fetchDoctorDetail } from "../../Redux/features/doctor";
 import { securePostData } from "../../Services/api";
 import { toast } from "react-toastify";
-import base_url from "../../baseUrl";
+import base_url, { client_url } from "../../baseUrl";
 
 function ProfileSidebar() {
+  const navigate=useNavigate()
+  const [scannerOpen, setScannerOpen] = useState(false)
   const handleDetected = (code) => {
-    alert("Scanned barcode: " + code);
+    navigate(`${client_url}doctor/patient-details/${code}`)
   };
   const dispatch = useDispatch()
   const [loading, setLoading] = useState(false)
   const userId = localStorage.getItem('userId')
   const [message, setMessage] = useState('')
-  const { profiles, kyc, medicalLicense, allowEdit, aboutDoctor, educationWork, customId, isRequest } = useSelector(state => state.doctor)
+  const { profiles, kyc, medicalLicense, allowEdit, aboutDoctor, educationWork, customId, isRequestallowEdit } = useSelector(state => state.doctor)
   useEffect(() => {
     dispatch(fetchDoctorDetail())
   }, [dispatch])
+  const closeScanner = () => setScannerOpen(false);
   const handleSubmit=async(e)=>{
     const data=new FormData()
     data.append('userId',userId)
@@ -104,9 +107,9 @@ function ProfileSidebar() {
 
               <li className="nw-profile-item"><Link to='/doctor/patient-history' className="nw-nav-links"> <FontAwesomeIcon icon={faHistory} className="nw-nav-icon" /> Patient history</Link></li>
 
-              <li className="nw-profile-item"><a href="javascript:void(0)" className="nw-nav-links" data-bs-toggle="modal" data-bs-target="#scanner-Request"> <BiScan className="nw-nav-icon" />  Scan</a></li>
+              <li className="nw-profile-item"><a onClick={() => setScannerOpen(true)} href="javascript:void(0)" className="nw-nav-links" > <BiScan className="nw-nav-icon" />  Scan</a></li>
 
-              <li className="nw-profile-item"><Link to='/doctor/profile-edit-request' className="nw-nav-links"> <FontAwesomeIcon icon={faUserCircle} className="nw-nav-icon" />Profile</Link></li>
+              <li className="nw-profile-item"><Link to={'/doctor/profile-edit-request'} className="nw-nav-links"> <FontAwesomeIcon icon={faUserCircle} className="nw-nav-icon" />Profile</Link></li>
 
               <li className="nw-profile-item"><Link to='/doctor/chat' className="nw-nav-links"> <FontAwesomeIcon icon={faMessage} className="nw-nav-icon" /> Chat</Link></li>
 
@@ -160,16 +163,20 @@ function ProfileSidebar() {
 
       {/*Payment Status Popup Start  */}
       {/* data-bs-toggle="modal" data-bs-target="#scanner-Request" */}
-      <div className="modal step-modal" id="scanner-Request" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+      {scannerOpen &&
+       <div className="modal fade show step-modal"
+          id="scanner-Request"
+          style={{ display: "block", background: "#00000080" }}
+          data-bs-backdrop="static"
+          data-bs-keyboard="false">
         <div className="modal-dialog modal-dialog-centered modal-md">
           <div className="modal-content rounded-5 p-4">
             <div className="d-flex align-items-center justify-content-between">
               <div>
-                <h6 className="lg_title mb-0">Scan </h6>
+                <h6 className="mb-0">Scan </h6>
               </div>
               <div>
-                <button type="button" className="fz-18" data-bs-dismiss="modal" aria-label="Close" style={{ color: "#00000040" }}>
+                <button type="button" className="fz-18" onClick={closeScanner} style={{ color: "#00000040" }}>
                   <FontAwesomeIcon icon={faCircleXmark} />
                 </button>
               </div>
@@ -177,17 +184,14 @@ function ProfileSidebar() {
             <div className="modal-body p-0">
               <div className="row ">
                 <div className="col-lg-12">
-
                   {/* <Scanner onDetected={handleDetected}/> */}
-
-                  <DoctorScanner onDetected={handleDetected} />
-
+                  <DoctorScanner open={scannerOpen} onDetected={handleDetected} />
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </div>}
       {/*  Payment Status Popup End */}
 
     </>

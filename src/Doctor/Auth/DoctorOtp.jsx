@@ -8,6 +8,7 @@ import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { postApiData } from "../../Services/api";
 import { fetchDoctorDetail } from "../../Redux/features/doctor";
+import Loader from "../../Loader/Loader";
 
 function DoctorOtp() {
     const navigate = useNavigate()
@@ -103,7 +104,8 @@ function DoctorOtp() {
     }, [contactNumber])
     return (
         <>
-            <section className="admin-login-section nw-hero-section ">
+            {loading?<Loader/>
+            :<section className="admin-login-section nw-hero-section ">
                 <div className="container">
                     <div className="row ">
                         <div className="col-lg-6 col-md-12 col-sm-12">
@@ -164,7 +166,7 @@ function DoctorOtp() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section>}
         </>
     )
 }

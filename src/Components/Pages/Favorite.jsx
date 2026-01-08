@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { getSecureApiData, securePostData } from "../../Services/api"
 import base_url from "../../baseUrl"
 import { Link } from "react-router-dom"
+import { toast } from "react-toastify"
 
 function Favorite() {
     const userId = localStorage.getItem('userId')
@@ -24,6 +25,34 @@ function Favorite() {
     }, [userId,activeTab])
     const handleFavorite = async (id) => {
         const data = { userId, labId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
+    const handleDoctorFavorite = async (id) => {
+        const data = { userId, doctorId: id }
+        try {
+            const response = await securePostData('patient/favorite', data)
+            if (response.success) {
+                // toast.success("")
+                fetchFavData()
+            } else {
+                toast.success(response.message)
+            }
+        } catch (error) {
+
+        }
+    }
+    const handleHospitalFavorite = async (id) => {
+        const data = { userId, hospitalId: id }
         try {
             const response = await securePostData('patient/favorite', data)
             if (response.success) {
@@ -129,12 +158,12 @@ function Favorite() {
                                                                                 <div className="my-2">
                                                                                     <span className="lab-rating"> <i className="fa-solid fa-star rating-icon"></i> {item?.avgRating}</span>
                                                                                 </div>
-                                                                                <h6 className="nw-hospital-title">{item?.doctorAbout?.specialty} <span className="slash-title" >|</span> {item?.doctorAbout?.hospitalName?.name}</h6>
+                                                                                <h6 className="nw-hospital-title">{item?.doctorAbout?.specialty} <span className="slash-title" >|</span> {item?.doctorAbout?.hospitalName?.hospitalName}</h6>
                                                                                 <p className=""><FontAwesomeIcon icon={faRoute} /> 2.5 km</p>
                                                                                 <p className=""><FontAwesomeIcon icon={faLocationDot} /> {item?.doctorAbout?.city}, {item?.doctorAbout?.state}</p>
                                                                                 <h5 className="ammount-title"><span className="fees-title">Fees :</span> $ {item?.doctorAbout?.fees}</h5>
                                                                                 <div className="d-flex justify-content-between mt-3">
-                                                                                    <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
+                                                                                     <button type="button" onClick={()=>handleDoctorFavorite(item?.doctor?._id)} className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></button>
                                                                                     <Link to={`/book-doctor-appointment/${item?.doctor?.name}/${item?.doctor?._id}`} className="nw-thm-btn">Book Appointment</Link>
                                                                                 </div>
                                                                             </div>
@@ -144,119 +173,38 @@ function Favorite() {
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                     <div className="tab-pane fade" id="profile" role="tabpanel">
                                                         <div className="all-profile-data-bx">
                                                             <div className="row">
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
+                                                                {favIds?.length>0 && 
+                                                                favIds?.map((item,key)=>
+                                                                    <div className="col-lg-6 col-md-12 col-sm-12 mb-3" key={key}>
                                                                     <div className="lab-technology-card">
                                                                         <div className="doctor-mega-card">
                                                                             <div className="doctor-pic-bx">
-                                                                                <img src="/hospital-pic.jpg" alt="" />
+                                                                                <img src={item?.hospital?.logoField? `${base_url}/${item?.hospital?.logoField}`
+                                                                                :"/hospital-pic.jpg"} alt="" />
                                                                             </div>
                                                                             <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                                                <h4 className="innr-title fz-700">{item?.hospital?.hospitalName}</h4>
+                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> {item?.hospitalAddress?.fullAddress}</p>
                                                                                 <div className="my-3 d-flex align-items-center justify-content-between">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> {item?.avgRating} </span>
                                                                                     <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                                                 </div>
 
                                                                                 <div className="  d-flex align-items-center justify-content-between">
                                                                                     <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
+                                                                                        <button type="button" onClick={()=>handleHospitalFavorite(item?.hospital?._id)} className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></button>
                                                                                     </div>
                                                                                     <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
+                                                                                        <Link to={`/hospital-details/${item?.hospital?.hospitalName}/${item?.hospital?._id}`} className="nw-thm-btn">View Details</Link>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/hospital-pic.jpg" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/hospital-pic.jpg" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                                                    <div className="lab-technology-card">
-                                                                        <div className="doctor-mega-card">
-                                                                            <div className="doctor-pic-bx">
-                                                                                <img src="/hospital-pic.jpg" alt="" />
-                                                                            </div>
-                                                                            <div className="doctor-details  flex-grow-1">
-                                                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                                                </div>
-
-                                                                                <div className="  d-flex align-items-center justify-content-between">
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-solid fa-heart nw-red-heart"></i></a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-
+                                                                </div>)}                                                            
                                                             </div>
                                                         </div>
                                                     </div>

@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { languageOptions, specialtyOptions } from "../../Services/globalFunction";
 import Select from "react-select";
 import Loader from "../../Loader/Loader";
+import base_url from "../../baseUrl";
 function DoctorEditProfile() {
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false)
@@ -69,7 +70,7 @@ function DoctorEditProfile() {
     const addressSubmit = async (e) => {
         e.preventDefault();
         setLoading(true)
-        const data={...addressData,hospitalName:addressData?.hospitalName?.value}
+        const data = { ...addressData, hospitalName: addressData?.hospitalName?.value }
         try {
             const response = await securePostData('doctor/about', addressData)
             if (response.success) {
@@ -115,7 +116,7 @@ function DoctorEditProfile() {
             if (response.success) {
                 const formattedOptions = response.data.map(hospital => ({
                     value: hospital._id,   // or hospital._id depending on your data
-                    label: hospital.name, // display name
+                    label: hospital.hospitalName, // display name
                 }));
 
                 setHospitalOptions(formattedOptions)
@@ -436,7 +437,6 @@ function DoctorEditProfile() {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-
                                                                         <div className="col-lg-6 col-md-6 col-sm-12">
                                                                             <div className="custom-frm-bx">
                                                                                 <label htmlFor="">Mobile Number</label>
@@ -446,7 +446,6 @@ function DoctorEditProfile() {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-
                                                                         <div className="col-lg-6 col-md-6 col-sm-12">
                                                                             <div className="custom-frm-bx">
                                                                                 <label htmlFor="">Email</label>
@@ -623,11 +622,9 @@ function DoctorEditProfile() {
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-
                                                                             <div className="nw-press-delete-bx">
                                                                                 <button className="text-danger"> <FontAwesomeIcon icon={faTrash} /> </button>
                                                                             </div>
-
                                                                         </div>)}
 
                                                                     <div className="add-more-bx d-flex justify-content-end mt-3">
@@ -652,43 +649,42 @@ function DoctorEditProfile() {
 
                                                         <div className="tab-pane fade" id="contact" role="tabpanel">
                                                             <form onSubmit={handleLicenseSubmit}>
-
-
                                                                 <div className="all-profile-data-bx">
-                                                                    <div className="pres-report-bx nw-press-report-bx">
-                                                                        <div className="row flex-grow-1">
-                                                                            <div className="col-lg-12 col-md-12 col-sm-12">
-                                                                                <div className="custom-frm-bx">
-                                                                                    <label htmlFor="">Prescriptions and Reports Name</label>
-                                                                                    <input type="text" className="form-control new-control-frm px-5" placeholder="Enter Prescriptions and Reports Name " />
-                                                                                    <div className="contact-add-icon">
-                                                                                        <span className="nw-contact-icon"> <FontAwesomeIcon icon={faFile} /> </span>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                <div className="pres-uploading-box">
+                                                                    {licenses?.map((item, key) =>
+                                                                        <div className="pres-report-bx nw-press-report-bx" key={key}>
+                                                                            <div className="row flex-grow-1">
+                                                                                <div className="col-lg-12 col-md-12 col-sm-12">
                                                                                     <div className="custom-frm-bx">
-                                                                                        <label htmlFor="">Prescriptions and Reports  Upload</label>
-                                                                                        <div className="pres-picture-bx">
-                                                                                            <img src="/report-pic.png" alt="" />
+                                                                                        <label htmlFor="">Prescriptions and Reports Name</label>
+                                                                                        <input type="text" className="form-control new-control-frm px-5"
+                                                                                            value={item?.certName}
+                                                                                            placeholder="Enter Prescriptions and Reports Name " />
+                                                                                        <div className="contact-add-icon">
+                                                                                            <span className="nw-contact-icon"> <FontAwesomeIcon icon={faFile} /> </span>
                                                                                         </div>
-
-                                                                                        <div className="close-pres-bx">
-                                                                                            <button className="remv-pic-btn">
-                                                                                                <FontAwesomeIcon icon={faClose} />
-                                                                                            </button>
+                                                                                    </div>
+                                                                                    <div className="pres-uploading-box">
+                                                                                        <div className="custom-frm-bx">
+                                                                                            <label htmlFor="">Prescriptions and Reports  Upload</label>
+                                                                                            <div className="pres-picture-bx">
+                                                                                                <img src={`${base_url}/${item?.certFile}`} alt="" />
+                                                                                            </div>
+                                                                                            <div className="close-pres-bx">
+                                                                                                <button className="remv-pic-btn">
+                                                                                                    <FontAwesomeIcon icon={faClose} />
+                                                                                                </button>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div className="nw-press-delete-bx">
-                                                                            <button className="text-danger"> <FontAwesomeIcon icon={faTrash} /> </button>
-                                                                        </div>
-                                                                    </div>
+                                                                            <div className="nw-press-delete-bx">
+                                                                                <button className="text-danger"> <FontAwesomeIcon icon={faTrash} /> </button>
+                                                                            </div>
+                                                                        </div>)}
 
                                                                     <div className="add-more-bx d-flex justify-content-end mt-3">
-                                                                        <button className="nw-thm-btn outline d-flex align-items-center justify-content-center gap-2 nw-dashed-brd"> <FiPlusSquare />   Add More</button>
+                                                                        <button type="button" onClick={addMore} className="nw-thm-btn outline d-flex align-items-center justify-content-center gap-2 nw-dashed-brd"> <FiPlusSquare />   Add More</button>
                                                                     </div>
                                                                 </div>
                                                                 <div className="profile-btm-footer">
@@ -712,7 +708,6 @@ function DoctorEditProfile() {
                                                                                 <label htmlFor="">Organization / Hospital Name</label>
                                                                                 {/* <input type="text" name="hospitalName" value={addressData?.hospitalName} onChange={handleAddressChange} id="" className="form-control new-control-frm px-5" placeholder="Enter your Organization / Hospital Name" /> */}
                                                                                 <div className="select-wrapper">
-
                                                                                     <Select
                                                                                         options={hospitalOptions}
                                                                                         name="hospitalName"

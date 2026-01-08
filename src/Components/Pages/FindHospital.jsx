@@ -4,6 +4,7 @@ import { toast } from "react-toastify"
 import { getApiData, getSecureApiData, securePostData } from "../../Services/api"
 import { useEffect, useState } from "react"
 import base_url from "../../baseUrl"
+import { Link } from "react-router-dom"
 
 function FindHospital() {
     const [favIds, setFavIds] = useState([])
@@ -29,7 +30,7 @@ function FindHospital() {
         fetchFavData()
     }, [userId])
     const handleFavorite = async (id) => {
-        const data = { userId, labId: id }
+        const data = { userId, hospitalId: id }
         try {
             const response = await securePostData('patient/favorite', data)
             if (response.success) {
@@ -125,7 +126,6 @@ function FindHospital() {
                                                                 <label htmlFor="not">No Available</label>
                                                             </div>
                                                         </li>
-
                                                     </ul>
 
 
@@ -192,12 +192,10 @@ function FindHospital() {
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                         <div className="col-lg-9 col-md-12 col-sm-12">
                             <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                                 <div className="d-flex align-items-center gap-2">
@@ -245,268 +243,29 @@ function FindHospital() {
                                                             `${base_url}/${item?.hospitalId?.logoFileId}` : "/hospital-pic.jpg"} alt="" />
                                                     </div>
                                                     <div className="doctor-details  flex-grow-1">
-                                                        <h4 className="innr-title fz-700">{item?.name}</h4>
-                                                        <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
+                                                        <h4 className="innr-title fz-700">{item?.hospitalName}</h4>
+                                                        <p><FontAwesomeIcon icon={faLocationDot} /> {item?.address?.fullAddress}</p>
                                                         <div className="my-3 d-flex align-items-center justify-content-between">
-                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
+                                                            <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> {item?.avgRating} </span>
                                                             <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
                                                         </div>
 
                                                         <div className="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
+                                                                <button className="heart-btn" onClick={() => handleFavorite(item?._id)}>
+                                                                    {favIds?.some(fav => fav?.hospitalId === item?._id) ?
+                                                                        <i className="fa-solid fa-heart" style={{ color: "red" }}></i>
+                                                                        : <i className="fa-regular fa-heart"></i>}</button>
                                                             </div>
                                                             <div>
-                                                                <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
+                                                                <Link to={`/hospital-details/${item?.hospitalName}/${item?._id}`} href="javascript:void(0)" className="nw-thm-btn">View Details</Link>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>)}
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="col-lg-6 col-md-12 col-sm-12 mb-3">
-                                    <div className="lab-technology-card">
-                                        <div className="doctor-mega-card">
-                                            <div className="doctor-pic-bx">
-                                                <img src="/hospital-pic.jpg" alt="" />
-                                            </div>
-                                            <div className="doctor-details  flex-grow-1">
-                                                <h4 className="innr-title fz-700">Sunrise Health Clinic</h4>
-                                                <p><FontAwesomeIcon icon={faLocationDot} /> Malviya Nagar, Jaipur</p>
-                                                <div className="my-3 d-flex align-items-center justify-content-between">
-                                                    <span className="lab-rating"> <i class="fa-solid fa-star rating-icon"></i> 5.0 </span>
-                                                    <p><FontAwesomeIcon icon={faRoute} />2.5 km</p>
-                                                </div>
-
-                                                <div className="  d-flex align-items-center justify-content-between">
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="heart-btn"><i class="fa-regular fa-heart"></i></a>
-                                                    </div>
-                                                    <div>
-                                                        <a href="javascript:void(0)" className="nw-thm-btn">View Details</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
                             </div>
-
-
-
-
-
                         </div>
 
                     </div>

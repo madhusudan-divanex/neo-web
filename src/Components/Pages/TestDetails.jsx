@@ -5,7 +5,7 @@ import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { BsCapsule } from "react-icons/bs";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getApiData, securePostData } from "../../Services/api";
+import { getApiData, securePostData, updateApiData } from "../../Services/api";
 import Loader from "../../Loader/Loader";
 import { toast } from "react-toastify";
 
@@ -18,6 +18,7 @@ function TestDetails() {
   const [isFull, setIsFull] = useState(false)
   const [loading, setLoading] = useState(false)
   const [labCertificate, setLabCertificate] = useState([])
+  const aptData = JSON.parse(sessionStorage.getItem('aptData'))
   const [labData, setLabData] = useState([])
   const [labAddress, setLabAddress] = useState()
   const [labImage, setLabImage] = useState()
@@ -136,15 +137,26 @@ function TestDetails() {
         doctorId:sessionStorage.getItem('doctorId')?sessionStorage.getItem('doctorId'):null,
         doctorAp:sessionStorage.getItem('doctorAp')?sessionStorage.getItem('doctorAp'):null
       };
+      if(aptData){
+        data.appointmentId=aptData?._id
+        const response = await updateApiData("appointment/lab", data);        
+        if (response.success) {
+          toast.success("Appointment update successfully!");
+          setIsShow(true)
+        } else {
+          toast.error(response.message || "Booking failed");
+        }
 
-      // 6️⃣ Send to backend
-      const response = await securePostData("appointment/lab", data);
+      }else{
 
-      if (response.success) {
-        toast.success("Appointment booked successfully!");
-        setIsShow(true)
-      } else {
-        toast.error(response.message || "Booking failed");
+        const response = await securePostData("appointment/lab", data);
+        
+        if (response.success) {
+          toast.success("Appointment booked successfully!");
+          setIsShow(true)
+        } else {
+          toast.error(response.message || "Booking failed");
+        }
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -153,6 +165,39 @@ function TestDetails() {
       setLoading(false)
     }
   };
+   useEffect(() => {
+      if (!aptData || !dates.length) return;
+      const appointmentDate = new Date(aptData.date);
+  
+      /* ---------- DATE MATCH ---------- */
+      const aptDay = appointmentDate.getDate();
+      const aptMonth = appointmentDate.getMonth();
+      const dateIndex = dates.findIndex(d => {
+        const [monthName, day] = d.date.split(" ");
+        const monthIndex = new Date(`${monthName} 1, 2000`).getMonth();
+        return (
+          Number(day) === aptDay &&
+          monthIndex === aptMonth
+        );
+      });
+      if (dateIndex !== -1  && activeIndex===0) {
+        setActiveIndex(dateIndex);
+      }
+  
+      /* ---------- TIME MATCH ---------- */
+      let hours = appointmentDate.getHours();
+      const minutes = appointmentDate.getMinutes();
+  
+      const meridiem = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+  
+      const formattedTime = `${String(hours).padStart(2, "0")}.${String(minutes).padStart(2, "0")} ${meridiem}`;
+  
+      if (times.includes(formattedTime)) {
+        setTimeIndex(formattedTime);
+      }
+  
+    }, [aptData]);
 
 
   return (

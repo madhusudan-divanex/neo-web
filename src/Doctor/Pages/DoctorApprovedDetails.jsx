@@ -3,12 +3,52 @@ import ProfileSidebar from "./ProfileSidebar"
 import { faCircleXmark, faCopy, faDroplet, faEye, faMarsAndVenus, faPerson, faRulerVertical, faWeightScale } from "@fortawesome/free-solid-svg-icons"
 import "../Css/style.css"
 import "../Css/responsive.css"
+import { useNavigate, useParams } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { getSecureApiData } from "../../Services/api"
+import base_url from "../../baseUrl"
+import { calculateAge } from "../../Services/globalFunction"
+import Loader from "../../Loader/Loader"
 
 
 function DoctorApprovedDetails() {
+    const params = useParams()
+    const patientId = params.id
+    const navigate = useNavigate()
+    const [loading, setLoading] = useState(false)
+    const doctorId = localStorage.getItem('userId')
+    const [medicalHistory, setMedicalHisotry] = useState()
+    const [prescription, setPrescription] = useState([])
+    const [patientData, setPatientData] = useState()
+    const [demographic, setDemographic] = useState()
+    const [customId, setCustomId] = useState()
+    const [note, setNote] = useState('')
+    async function fetchPatientProfile() {
+        setLoading(true)
+        try {
+            const result = await getSecureApiData(`patient/profile-detail/${patientId}`)
+            if (result.success) {
+                setDemographic(result?.demographic)
+                setMedicalHisotry(result.medicalHistory)
+                setPrescription(result?.prescription?.prescriptions)
+                setPatientData(result?.user)
+                setCustomId(result.customId)
+            }
+        } catch (error) {
+
+        } finally {
+            setLoading(false)
+        }
+    }
+    useEffect(() => {
+        if (patientId) {
+            fetchPatientProfile()
+        }
+    }, [patientId])
     return (
         <>
-            <section className="new-profile-section">
+            {loading?<Loader/>
+            :<section className="new-profile-section">
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-3  col-sm-12 mb-3">
@@ -22,7 +62,9 @@ function DoctorApprovedDetails() {
                                             <h5 className="heading-grad fz-24 mb-0">Details</h5>
                                         </div>
                                         <div>
-                                            <span className="complete-data">Approved</span>
+                                            {patientData?.status == 'approved' ?
+                                                <span className="complete-data">Approved</span> :
+                                                <span className="cancel-data">Rejected</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -32,10 +74,11 @@ function DoctorApprovedDetails() {
                                             <div>
                                                 <div className=" patient-details-bx mb-3">
                                                     <div className="admin-table-sub-bx patient-avartr-bx gap-3">
-                                                        <img src="/table-avatar.jpg" alt="" />
+                                                        <img src={patientData?.profileImage ? `${base_url}/${patientData?.profileImage}`
+                                                            : "/table-avatar.jpg"} alt="" />
                                                         <div className=" patient-bio-content">
-                                                            <h6>Sunil Kumar Sharma</h6>
-                                                            <p>ID: SUNIL33209490</p>
+                                                            <h6>{patientData?.name}</h6>
+                                                            <p>ID: {customId}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -47,11 +90,11 @@ function DoctorApprovedDetails() {
                                                     </legend>
                                                     <div className="d-flex align-items-center justify-content-between flex-wrap">
                                                         <ul className="patient-bio-list">
-                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faPerson} /> Age :<span className="patient-bio-title"> 18</span> </li>
-                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faMarsAndVenus} /> Gender :<span className="patient-bio-title"> Male</span> </li>
-                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faRulerVertical} /> Height :<span className="patient-bio-title"> 6 fit </span> </li>
-                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faWeightScale} /> Weight :<span className="patient-bio-title"> 50 Kg</span> </li>
-                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faDroplet} /> Blood Group :<span className="patient-bio-title"> B+</span> </li>
+                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faPerson} /> Age :<span className="patient-bio-title"> {calculateAge(demographic?.dob)}</span> </li>
+                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faMarsAndVenus} /> Gender :<span className="patient-bio-title"> {patientData?.gender}</span> </li>
+                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faRulerVertical} /> Height :<span className="patient-bio-title">{demographic?.height} </span> </li>
+                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faWeightScale} /> Weight :<span className="patient-bio-title"> {demographic?.weight}</span> </li>
+                                                            <li className="patient-bio-item"><FontAwesomeIcon icon={faDroplet} /> Blood Group :<span className="patient-bio-title"> {demographic?.bloodGroup}</span> </li>
                                                         </ul>
                                                         <div>
                                                         </div>
@@ -64,30 +107,24 @@ function DoctorApprovedDetails() {
                                                     <div className="medical-history-content">
                                                         <div>
                                                             <h4 className="fz-16 fw-700">Do you have any chronic conditions?</h4>
-                                                            <h5 className="hearth-disese">Heart Disease</h5>
+                                                            <h5 className="hearth-disese">{medicalHistory?.chronicCondition}</h5>
                                                         </div>
                                                         <div className="mt-3">
                                                             <h4 className="fz-16 fw-700">Are you currently on any medications?</h4>
-                                                            <h5 className="hearth-disese">Yes</h5>
+                                                            <h5 className="hearth-disese">{medicalHistory?.onMedication ? 'Yes' : 'No'}</h5>
                                                         </div>
                                                     </div>
                                                     <div className="medical-history-content my-3">
                                                         <div>
                                                             <h4 className="fz-16 fw-700">Medication Details</h4>
-                                                            <p>ACE Inhibitors (Twice daily)</p>
-                                                            <p>Beta Blockers  (Once daily)</p>
+                                                            <p>{medicalHistory?.medicationDetail}</p>
                                                         </div>
 
                                                         <div className="mt-3">
                                                             <h4 className="fz-16 fw-700">Allergies</h4>
-                                                            <p>Penicillin</p>
-                                                            <p>Peanuts</p>
+                                                            <p>{medicalHistory?.allergies}</p>
                                                         </div>
 
-                                                        <div className="mt-3">
-                                                            <h4 className="fz-16 fw-700">Are you currently on any medications?</h4>
-                                                            <h5 className="hearth-disese">Yes</h5>
-                                                        </div>
 
                                                     </div>
 
@@ -101,16 +138,13 @@ function DoctorApprovedDetails() {
                                                     <div className="medical-history-content ">
                                                         <div>
                                                             <h4 className="fz-16 fw-700">Any family history of chronic disease?</h4>
-                                                            <h5 className="hearth-disese">Yes</h5>
+                                                            <h5 className="hearth-disese">{medicalHistory?.familyHistory?.chronicHistory}</h5>
 
                                                         </div>
 
                                                         <div className="mt-3">
                                                             <h4 className="fz-16 fw-700">Chronic Diseases in Family</h4>
-                                                            <p> Father: Hypertension, Type 2 Diabetes</p>
-                                                            <p>Mother: Osteoarthritis</p>
-                                                            <p>Maternal Grandfather: Heart Disease</p>
-                                                            <p>Paternal Grandmother: Stroke</p>
+                                                            <p> {medicalHistory?.familyHistory?.diseasesInFamily}</p>
                                                         </div>
 
                                                     </div>
@@ -123,43 +157,26 @@ function DoctorApprovedDetails() {
                                                     </legend>
 
                                                     <div className="row">
-                                                        <div className="col-lg-6 col-sm-12 mb-3">
-                                                            <div className="prescription-patients-card">
-                                                                <div className="prescription-patients-picture">
-                                                                    <img src="/patient-card-one.png" alt="" />
-                                                                </div>
-                                                                <div className="card-details-bx">
-                                                                    <div className="card-info-title">
-                                                                        <h3>CBC Report 8/21/2025</h3>
-                                                                        <p>8/21/2025</p>
+                                                        {prescription?.length > 0 &&
+                                                            prescription?.map((item, key) =>
+                                                                <div className="col-lg-6 col-sm-12 mb-3" key={key}>
+                                                                    <div className="prescription-patients-card">
+                                                                        <div className="prescription-patients-picture">
+                                                                            <img src={item?.fileUrl ?
+                                                                                `${base_url}/${item?.fileUrl}` : "/patient-card-one.png"} alt="" />
+                                                                        </div>
+                                                                        <div className="card-details-bx">
+                                                                            <div className="card-info-title">
+                                                                                <h3>{item?.name}</h3>
+                                                                                {/* <p>8/21/2025</p> */}
+                                                                            </div>
+                                                                            <div className="">
+                                                                                <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
-
-                                                                    <div className="">
-                                                                        <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="col-lg-6 col-sm-12 mb-3">
-                                                            <div className="prescription-patients-card">
-                                                                <div className="prescription-patients-picture">
-
-                                                                    <img src="/patient-card-two.png" alt="" />
-                                                                </div>
-                                                                <div className="card-details-bx">
-                                                                    <div className="card-info-title">
-                                                                        <h3>Prescriptions 8/21/2025</h3>
-                                                                        <p>8/21/2025</p>
-                                                                    </div>
-
-                                                                    <div className="">
-                                                                        <button type="button" className="card-sw-btn"><FontAwesomeIcon icon={faEye} /></button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
+                                                                </div>)}
+                                                     
                                                     </div>
                                                 </fieldset>
                                             </div>
@@ -173,7 +190,7 @@ function DoctorApprovedDetails() {
                     </div>
                 </div>
 
-            </section>
+            </section>}
 
             {/*Payment Status Popup Start  */}
             {/* data-bs-toggle="modal" data-bs-target="#edit-Request" */}

@@ -101,7 +101,13 @@ function LabReport() {
                                                                             </div>
                                                                         </td>
 
-                                                                    </tr>) : 'No record'}
+                                                                    </tr>) : (
+                                                                    <tr>
+                                                                        <td colSpan="5" className="text-center py-4 fw-600">
+                                                                            No report found
+                                                                        </td>
+                                                                    </tr>
+                                                                )}
 
 
 

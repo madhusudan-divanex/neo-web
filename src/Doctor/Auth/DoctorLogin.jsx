@@ -11,6 +11,7 @@ import { postApiData } from "../../Services/api";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
+import Loader from "../../Loader/Loader";
 
 function DoctorLogin() {
     const navigate = useNavigate()
@@ -54,7 +55,8 @@ function DoctorLogin() {
     };
     return (
         <>
-            <section className="admin-login-section nw-hero-section ">
+            {loading?<Loader/>
+            :<section className="admin-login-section nw-hero-section ">
                 <div className="container">
                     <div className="row ">
                         <div className="col-lg-6 col-md-12 col-sm-12">
@@ -117,7 +119,7 @@ function DoctorLogin() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section>}
         </>
     )
 }

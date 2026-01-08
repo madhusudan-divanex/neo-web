@@ -31,7 +31,7 @@ function Home() {
     splideRef2.current.splide.go("<");
     splideRef3.current.splide.go("<");
   };
-  
+
 
 
   const settings = {
@@ -81,7 +81,7 @@ function Home() {
 
   return (
     <>
-      {/* <section className='baner baner-box' style={{ backgroundImage: `url(/baner.png)`, }}>
+      <section className='baner baner-box' style={{ backgroundImage: `url(/baner.png)`, }}>
         <div className="container">
           <div className="row">
             <div className="col-lg-6 col-md-12 col-sm-12 position-relative z-1">
@@ -90,16 +90,15 @@ function Home() {
                 <p>Experience world-class healthcare with NeoHealthCard. Book appointments with top doctors, access telemedicine, and manage your health journey all in one place.</p>
               </div>
               <div className="search-wrapper custom-frm-bx">
-                 <input
-                    type="text"
-                    className="form-control search-input"
-                    placeholder="Search doctors, clinics, hospitals, etc"
-                  />
-                 
-              <div className="tp-nw-filter-bx">
-                    <button className="nw-thm-btn">Search</button>
-              </div>
-          
+                <input
+                  type="text"
+                  className="form-control search-input"
+                  placeholder="Search doctors, clinics, hospitals, etc" />
+
+                <div className="tp-nw-filter-bx">
+                  <button className="nw-thm-btn">Search</button>
+                </div>
+
               </div>
             </div>
 
@@ -113,20 +112,20 @@ function Home() {
                     <motion.img
                       src="/baner-img2.png"
                       alt="checkup badge"
-                      initial={{ y: -100, opacity: 0 }}         
-                      whileInView={{ y: 0, opacity: 1 }}         
+                      initial={{ y: -100, opacity: 0 }}
+                      whileInView={{ y: 0, opacity: 1 }}
                       transition={{ duration: 1.2, ease: "easeOut" }}
-                      viewport={{ once: true }}                  
+                      viewport={{ once: true }}
                     />
                   </div>
 
- 
+
                   <div className="doctor-box">
                     <motion.img
                       src="/baner-img1.png"
                       alt="doctor banner"
-                      initial={{ x: -100, opacity: 0 }}      
-                      whileInView={{ x: 0, opacity: 1 }}   
+                      initial={{ x: -100, opacity: 0 }}
+                      whileInView={{ x: 0, opacity: 1 }}
                       transition={{ duration: 1.2, ease: "easeOut" }}
                       viewport={{ once: true }}
                     />
@@ -136,10 +135,11 @@ function Home() {
 
               </div>
             </div>
+
           </div>
         </div>
 
-      </section> */}
+      </section>
 
       {/* <section className='Categories'>
         <div className="container">
@@ -201,7 +201,7 @@ function Home() {
         </div>
       </section> */}
 
-        <section className="categories-section">
+      <section className="categories-section">
         <div className="container">
           <div className="row">
             <div className="mb-3">
@@ -326,7 +326,7 @@ function Home() {
       </section>
 
       <section className="categories-section">
-         <div className="container">
+        <div className="container">
           <div className="row">
             <div className="mb-3">
               <h5 className="heading-grad fz-40 fw-700">Services</h5>
@@ -344,6 +344,51 @@ function Home() {
                 </div>
                 <div className="text-center">
                   <button className="nw-thm-btn">Search Doctors</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-md-4 col-sm-12 mb-3">
+              <div className="doctor-services-card">
+                <div className="services-pic-bx">
+                  <img src="/labs-pic.png" alt="" />
+                </div>
+                <div className="services-content">
+                  <h3>Labs</h3>
+                  <p>Locate the nearest medical center for emergency, inpatient, or specialized care.</p>
+                </div>
+                <div className="text-center">
+                  <button className="nw-thm-btn">Search Labs</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-md-4 col-sm-12 mb-3">
+              <div className="doctor-services-card">
+                <div className="services-pic-bx">
+                  <img src="/services-pic.png" alt="" />
+                </div>
+                <div className="services-content">
+                  <h3>Hospitals</h3>
+                  <p>Locate the nearest medical center for emergency, inpatient, or specialized care.</p>
+                </div>
+                <div className="text-center">
+                  <button className="nw-thm-btn">Search Hospital</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-md-4 col-sm-12 mb-3">
+              <div className="doctor-services-card">
+                <div className="services-pic-bx">
+                  <img src="/services-pic.png" alt="" />
+                </div>
+                <div className="services-content">
+                  <h3>Ambulance</h3>
+                  <p>Immediately Book for emergency medical transport and on-site stabilizing care.</p>
+                </div>
+                <div className="text-center">
+                  <button className="nw-thm-btn">Book Ambulance</button>
                 </div>
               </div>
             </div>
@@ -495,7 +540,7 @@ function Home() {
         </div>
       </section>
 
-       <section className="lab-categoreis-section">
+      <section className="lab-categoreis-section">
         <div className="container">
           <div className="row">
             <div className="mb-3">
@@ -624,7 +669,6 @@ function Home() {
 
       </section>
 
-    
 
       <section className='hospital-section'>
         <div className="container">
@@ -756,6 +800,37 @@ function Home() {
         </div>
       </section>
 
+      <section className="ambulance-hp-section">
+        <div className="container ">
+          <div className="book-ambulance-setion">
+            <div className="row">
+              <div className="col-lg-6 col-md-6 col-sm-12 d-flex flex-column justify-content-center">
+                <div className="book-ambulance-title">
+                  <h4>Book Ambulance</h4>
+
+                  <p>Book transport for an urgent medical need right now</p>
+
+
+                </div>
+
+                <div className="mt-4 ambulance-book-bx">
+                  <button className="nw-thm-btn">Book Ambulance Now</button>
+                </div>
+
+              </div>
+              <div className="col-lg-6 col-md-6 col-sm-12">
+                <div className="ambulance-trace-picture-bx">
+                  <img src="/ambulance-trace.png" alt="" />
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <section className='HowitWorks'>
         <div className="container">
           <div className="row">
@@ -767,7 +842,7 @@ function Home() {
               <div className="howitworks-contents">
                 <div>
                   <p>How it Works</p>
-                  <div className="LabTestCategories-content"> <h1>4 easy steps to get your solution</h1></div>
+                  <div > <h4 className="heading-grad fz-40 fw-700">4 easy steps to get your solution</h4></div>
                 </div>
                 <div className="howitworks-contents-box">
                   <div className='howitworks-contents-box-icon'>
@@ -963,7 +1038,7 @@ function Home() {
 
               <div className="nw-arrow-bx  mb-2">
                 <div>
-                  <h4 className="heading-grad fz-40 mb-2">Latest Blogs</h4>
+                  <h4 className="heading-grad fz-40 mb-2">Testimonials</h4>
                   <p>Specialists are dedicated to providing you with the highest quality medical care and personalized treatment plans.</p>
                 </div>
 

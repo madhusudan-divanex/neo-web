@@ -221,7 +221,7 @@ function Router() {
         },
 
         {
-          path: "/hospital-details",
+          path: "/hospital-details/:name/:id",
           element: <HospitalDetails />,
         },
 
@@ -650,7 +650,7 @@ function Router() {
 
 
             {
-              path: "/doctor/approval-details",
+              path: "/doctor/patient-details/:id",
               element: <DoctorApprovedDetails />,
             },
 
